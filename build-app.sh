@@ -48,6 +48,8 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$binary" "$APP/Contents/MacOS/ClaudeStatusBar"
 sed -e "s/__VERSION__/${VERSION}/" -e "s/__BUILD__/${BUILD}/" \
     Resources/Info.plist > "$APP/Contents/Info.plist"
+# O ícone é referenciado pelo Info.plist como CFBundleIconFile = AppIcon.
+cp logo.icns "$APP/Contents/Resources/AppIcon.icns"
 
 # Assinatura ad-hoc: suficiente para notificações locais e "abrir no login".
 # Não é notarizada, então o Gatekeeper pede a primeira abertura pelo menu
@@ -60,6 +62,11 @@ if $make_dmg; then
     staging="$(mktemp -d)"
     cp -R "$APP" "$staging/"
     ln -s /Applications "$staging/Applications"
+
+    # Ícone do próprio volume montado.
+    cp logo.icns "$staging/.VolumeIcon.icns"
+    SetFile -a C "$staging" 2>/dev/null || true
+
     hdiutil create -volname "Claude Status ${VERSION}" \
         -srcfolder "$staging" -ov -format UDZO "$DMG" >/dev/null
     rm -rf "$staging"

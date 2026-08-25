@@ -10,6 +10,8 @@
     <string>net.eduapx.ClaudeStatusBar</string>
     <key>CFBundleExecutable</key>
     <string>ClaudeStatusBar</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <!-- __VERSION__ e __BUILD__ são substituídos por build-app.sh -->

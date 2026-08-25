@@ -7,6 +7,11 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [1.0.1] — 2026-08-25
 
+### Adicionado
+
+- Ícone do app (`logo.icns`), embutido no bundle como `AppIcon.icns` e usado
+  também como ícone do volume do DMG.
+
 ### Corrigido
 
 - Posição do popover ajustada para apontar corretamente para a borda inferior do ícone da barra de menus.
