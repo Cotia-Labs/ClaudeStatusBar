@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    name: Build e empacotamento
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Selecionar Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Build (debug)
+        run: swift build -v
+
+      - name: Empacotar .app
+        run: ./build-app.sh
+
+      - name: Conferir o bundle
+        run: |
+          app="dist/ClaudeStatusBar.app"
+          test -x "$app/Contents/MacOS/ClaudeStatusBar"
+          codesign --verify --strict "$app"
+          plutil -lint "$app/Contents/Info.plist"
+
+      - name: Smoke test do --dump
+        # Sem credenciais no runner, o esperado é a mensagem de token ausente:
+        # o que se testa aqui é que o binário roda e sai limpo.
+        run: |
+          output="$(./dist/ClaudeStatusBar.app/Contents/MacOS/ClaudeStatusBar --dump)"
+          echo "$output"
+          echo "$output" | grep -q "Erro:"

@@ -4,18 +4,56 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-## Build
+Versão atual: **1.0.0** (ver [CHANGELOG.md](CHANGELOG.md)).
+
+## Instalar
+
+Baixe o `.dmg` da [página de Releases][releases], arraste
+**ClaudeStatusBar.app** para Applications e abra.
+
+O app é assinado só ad-hoc (sem conta paga de desenvolvedor), então o
+Gatekeeper barra a primeira abertura. Use **botão direito → Abrir**, ou:
 
 ```bash
-./build-app.sh            # gera dist/ClaudeStatusBar.app
-./build-app.sh --install  # também copia para /Applications
+xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
+```
+
+Requisitos: macOS 13+ e login ativo do Claude Code (`claude auth`).
+
+[releases]: ../../releases/latest
+
+## Build local
+
+```bash
+./build-app.sh                    # dist/ClaudeStatusBar.app (arquitetura local)
+./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.0.dmg
+./build-app.sh --install          # copia para /Applications
 open dist/ClaudeStatusBar.app
 
 ./.build/release/ClaudeStatusBar --dump   # imprime os números no terminal
 ```
 
-Requisitos: macOS 13+, toolchain Swift, e login ativo do Claude Code
-(`claude auth`).
+Precisa da toolchain Swift (Command Line Tools bastam — o `--universal` usa
+dois builds por triple + `lipo`, evitando o `xcbuild` do Xcode completo).
+
+## Publicar uma versão
+
+O GitHub Actions faz o build e sobe o artefato:
+
+- **`.github/workflows/ci.yml`** — a cada push em `main` e em cada PR: build,
+  empacotamento, verificação de assinatura e smoke test do `--dump`.
+- **`.github/workflows/release.yml`** — ao empurrar uma tag `v*` (ou manualmente
+  em Actions → Release): build universal, DMG, upload como artefato e anexo à
+  Release do GitHub. O job falha se `VERSION` não bater com a tag.
+
+```bash
+# 1. atualize VERSION e CHANGELOG.md
+git commit -am "Release 1.0.1"
+git tag v1.0.1
+git push origin main --tags
+```
+
+O DMG aparece na Release em poucos minutos, pronto para baixar e instalar.
 
 ## O que aparece
 

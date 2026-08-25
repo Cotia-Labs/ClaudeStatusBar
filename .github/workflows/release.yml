@@ -1,0 +1,70 @@
+name: Release
+
+# Dispara ao empurrar uma tag v* (ex.: v1.0.0) ou manualmente pela aba Actions.
+# Em ambos os casos o DMG universal vira artefato baixável; com tag, ele também
+# é anexado à Release do GitHub.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build universal .app + DMG
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Selecionar Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Conferir versão contra a tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          file_version="$(tr -d '[:space:]' < VERSION)"
+          tag_version="${GITHUB_REF_NAME#v}"
+          if [ "$file_version" != "$tag_version" ]; then
+            echo "VERSION ($file_version) difere da tag ($tag_version)" >&2
+            exit 1
+          fi
+
+      - name: Build
+        run: ./build-app.sh --universal --dmg
+
+      - name: Verificar o bundle
+        run: |
+          app="dist/ClaudeStatusBar.app"
+          lipo -archs "$app/Contents/MacOS/ClaudeStatusBar" | grep -q arm64
+          lipo -archs "$app/Contents/MacOS/ClaudeStatusBar" | grep -q x86_64
+          codesign --verify --strict "$app"
+          /usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$app/Contents/Info.plist"
+
+      - name: Subir artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClaudeStatusBar-dmg
+          path: dist/*.dmg
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Anexar à Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+          generate_release_notes: true
+          body: |
+            Baixe o `.dmg`, arraste **ClaudeStatusBar.app** para Applications.
+
+            O app é assinado só ad-hoc (sem conta de desenvolvedor), então na
+            primeira abertura use **botão direito → Abrir**, ou rode:
+
+            ```bash
+            xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
+            ```
+
+            Requer macOS 13+ e login ativo do Claude Code (`claude auth`).

@@ -12,10 +12,11 @@
     <string>ClaudeStatusBar</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+    <!-- __VERSION__ e __BUILD__ são substituídos por build-app.sh -->
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>__VERSION__</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>__BUILD__</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>LSUIElement</key>
