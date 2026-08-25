@@ -5,12 +5,14 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
-## [1.0.1] — 2026-08-25
+## [1.0.2] — 2026-08-25
 
 ### Adicionado
 
 - Ícone do app (`logo.icns`), embutido no bundle como `AppIcon.icns` e usado
   também como ícone do volume do DMG.
+
+## [1.0.1] — 2026-08-25
 
 ### Corrigido
 
@@ -47,6 +49,7 @@ Primeira versão.
   e painel que mantém os últimos números bons quando um refresh falha.
 - O app é assinado apenas ad-hoc; não é notarizado.
 
-[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.1...HEAD
+[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Cotia-Labs/ClaudeStatusBar/releases/tag/v1.0.0
