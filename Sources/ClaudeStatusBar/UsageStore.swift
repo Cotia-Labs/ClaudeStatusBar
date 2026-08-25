@@ -57,9 +57,13 @@ final class UsageStore: ObservableObject {
         if respectsCooldown, let earliest = nextAllowedFetch, Date() < earliest { return }
         isRefreshing = true
 
-        Task { @MainActor in
-            async let usageResult = fetchUsage()
-            async let statusResult = try? await statusFetcher.fetch()
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            // Bound to locals first: Swift 5.10 rejects `async let` reading
+            // captured properties directly from concurrent code.
+            let fetcher = self.statusFetcher
+            async let usageResult = self.fetchUsage()
+            async let statusResult = try? fetcher.fetch()
 
             switch await usageResult {
             case .success(let snapshot):
