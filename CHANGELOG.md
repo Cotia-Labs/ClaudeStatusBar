@@ -5,6 +5,22 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.3] — 2026-08-25
+
+### Corrigido
+
+- Popover abria distante do topo da tela. O medidor era uma `NSView` dentro do
+  botão do status item e o `button.frame` era sobrescrito a cada render, então
+  o AppKit ancorava o popover numa geometria errada. Agora o medidor é
+  desenhado como `NSImage` e atribuído a `button.image`: sem subview, sem
+  mexer em frames, e o popover encosta no menu bar como nos demais apps.
+
+### Alterado
+
+- Clique passa pelo `target/action` do próprio botão, com
+  `sendAction(on: [.leftMouseUp, .rightMouseUp])`; botão direito e Ctrl+clique
+  seguem abrindo o menu de opções.
+
 ## [1.0.2] — 2026-08-25
 
 ### Adicionado
@@ -49,7 +65,8 @@ Primeira versão.
   e painel que mantém os últimos números bons quando um refresh falha.
 - O app é assinado apenas ad-hoc; não é notarizado.
 
-[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.2...HEAD
+[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Cotia-Labs/ClaudeStatusBar/releases/tag/v1.0.0

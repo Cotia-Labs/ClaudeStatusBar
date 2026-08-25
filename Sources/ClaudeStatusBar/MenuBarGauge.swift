@@ -1,10 +1,15 @@
 import AppKit
 
-/// The menu bar view: a ring that fills up with the current utilization.
-/// The fill eases toward new values instead of snapping, and breathes
-/// (slow alpha pulse) once usage is critical.
-final class MenuBarGauge: NSView {
-    var onClick: ((NSEvent) -> Void)?
+/// Draws the menu bar gauge — a ring that fills up with the current
+/// utilization — into an image, one frame at a time.
+///
+/// Rendering to `NSStatusBarButton.image` instead of hosting a custom view
+/// keeps the button's own geometry intact, which is what AppKit uses to
+/// anchor the popover right under the menu bar.
+@MainActor
+final class MenuBarGauge {
+    /// Called with a freshly rendered frame; assign it to the button's image.
+    var onFrame: ((NSImage) -> Void)?
 
     private var target: Double = 0
     private var displayed: Double = 0
@@ -15,33 +20,28 @@ final class MenuBarGauge: NSView {
 
     private static let frameDuration = 1.0 / 30.0
     private static let ringWidth: CGFloat = 2.6
+    private static let diameter: CGFloat = 16
+    private static let height: CGFloat = 18
 
-    override init(frame frameRect: NSRect) {
-        super.init(frame: NSRect(x: 0, y: 0, width: 46, height: NSStatusBar.system.thickness))
-        wantsLayer = true
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) not implemented") }
-
-    override var intrinsicContentSize: NSSize {
-        NSSize(width: Preferences.showTextInMenuBar ? 62 : 30, height: NSStatusBar.system.thickness)
+    var width: CGFloat {
+        Preferences.showTextInMenuBar ? Self.diameter + 34 : Self.diameter + 4
     }
 
     func update(fraction: Double, level: UsageLevel, stale: Bool) {
         target = min(max(fraction, 0), 1)
         self.level = level
         isStale = stale
-        setFrameSize(intrinsicContentSize)
         startAnimating()
+        render()
     }
 
     private func startAnimating() {
         guard animation == nil else { return }
-        animation = Timer.scheduledTimer(withTimeInterval: Self.frameDuration, repeats: true) { [weak self] timer in
-            guard let self else { timer.invalidate(); return }
-            self.step(timer)
+        let timer = Timer(timeInterval: Self.frameDuration, repeats: true) { [weak self] timer in
+            MainActor.assumeIsolated { self?.step(timer) }
         }
-        RunLoop.main.add(animation!, forMode: .common)
+        RunLoop.main.add(timer, forMode: .common)
+        animation = timer
     }
 
     private func step(_ timer: Timer) {
@@ -58,7 +58,7 @@ final class MenuBarGauge: NSView {
             timer.invalidate()
             animation = nil
         }
-        needsDisplay = true
+        render()
     }
 
     private var tint: NSColor {
@@ -71,12 +71,25 @@ final class MenuBarGauge: NSView {
         }
     }
 
-    override func draw(_ dirtyRect: NSRect) {
+    private func render() {
+        let size = NSSize(width: width, height: Self.height)
+        let image = NSImage(size: size, flipped: false) { [self] _ in
+            draw(in: size)
+            return true
+        }
+        // Not a template image: the fill color is the whole point.
+        image.isTemplate = false
+        onFrame?(image)
+    }
+
+    private func draw(in size: NSSize) {
         let pulse = pulsePhase > 0 ? 0.55 + 0.45 * (0.5 + 0.5 * sin(pulsePhase * 4)) : 1.0
-        let diameter = min(bounds.height - 6, 16)
-        let ringRect = NSRect(x: 5, y: (bounds.height - diameter) / 2, width: diameter, height: diameter)
+        let ringRect = NSRect(x: 2,
+                              y: (size.height - Self.diameter) / 2,
+                              width: Self.diameter,
+                              height: Self.diameter)
         let center = NSPoint(x: ringRect.midX, y: ringRect.midY)
-        let radius = diameter / 2 - Self.ringWidth / 2
+        let radius = Self.diameter / 2 - Self.ringWidth / 2
 
         let track = NSBezierPath()
         track.appendArc(withCenter: center, radius: radius, startAngle: 0, endAngle: 360)
@@ -103,11 +116,8 @@ final class MenuBarGauge: NSView {
             .font: NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .medium),
             .foregroundColor: NSColor.labelColor.withAlphaComponent(pulse),
         ]
-        let size = text.size(withAttributes: attributes)
-        text.draw(at: NSPoint(x: ringRect.maxX + 5, y: (bounds.height - size.height) / 2),
+        let textSize = text.size(withAttributes: attributes)
+        text.draw(at: NSPoint(x: ringRect.maxX + 4, y: (size.height - textSize.height) / 2),
                   withAttributes: attributes)
     }
-
-    override func mouseDown(with event: NSEvent) { onClick?(event) }
-    override func rightMouseDown(with event: NSEvent) { onClick?(event) }
 }

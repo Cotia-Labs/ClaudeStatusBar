@@ -14,11 +14,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
-        gauge = MenuBarGauge(frame: .zero)
-        gauge.onClick = { [weak self] event in self?.handleClick(event) }
-        statusItem.button?.addSubview(gauge)
-        statusItem.button?.frame = gauge.frame
-        statusItem.length = gauge.intrinsicContentSize.width
+        gauge = MenuBarGauge()
+        gauge.onFrame = { [weak self] image in
+            self?.statusItem.button?.image = image
+            self?.statusItem.length = image.size.width
+        }
+
+        if let button = statusItem.button {
+            button.imagePosition = .imageOnly
+            button.target = self
+            button.action = #selector(handleClick(_:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        }
 
         popover = NSPopover()
         popover.behavior = .transient
@@ -45,8 +52,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         gauge.update(fraction: store.headlineFraction,
                      level: store.level,
                      stale: store.usageError != nil)
-        statusItem.length = gauge.intrinsicContentSize.width
-        statusItem.button?.frame = gauge.frame
         statusItem.button?.toolTip = tooltip
     }
 
@@ -60,10 +65,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     // MARK: - Interaction
 
-    private func handleClick(_ event: NSEvent) {
-        let isSecondary = event.type == .rightMouseDown || event.modifierFlags.contains(.control)
+    @objc private func handleClick(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent
+        let isSecondary = event?.type == .rightMouseUp
+            || event?.modifierFlags.contains(.control) == true
         if isSecondary {
-            showMenu(anchoredTo: gauge)
+            showMenu(anchoredTo: sender)
         } else {
             togglePopover()
         }
