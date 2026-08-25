@@ -91,6 +91,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private func showMenu(anchoredTo view: NSView) {
         let menu = NSMenu()
 
+        let versionItem = NSMenuItem(title: "\(AppInfo.displayName) \(AppInfo.versionLabel)",
+                                     action: nil,
+                                     keyEquivalent: "")
+        versionItem.isEnabled = false
+        menu.addItem(versionItem)
+        menu.addItem(.separator())
+
         let intervalItem = NSMenuItem(title: "Intervalo de atualização", action: nil, keyEquivalent: "")
         let intervalMenu = NSMenu()
         for choice in Preferences.refreshChoices {

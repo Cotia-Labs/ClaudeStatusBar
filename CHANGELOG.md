@@ -5,6 +5,15 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.4] — 2026-08-25
+
+### Adicionado
+
+- Versão do app no rodapé do painel e no topo do menu de opções, lida do
+  `Info.plist` (`CFBundleShortVersionString`, com o número do build do CI
+  quando houver).
+- Flag `--version` no executável.
+
 ## [1.0.3] — 2026-08-25
 
 ### Corrigido
@@ -65,7 +74,8 @@ Primeira versão.
   e painel que mantém os últimos números bons quando um refresh falha.
 - O app é assinado apenas ad-hoc; não é notarizado.
 
-[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.3...HEAD
+[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.0...v1.0.1

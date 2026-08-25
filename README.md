@@ -4,7 +4,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.0.3** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.0.4** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalar
 
@@ -26,11 +26,12 @@ Requisitos: macOS 13+ e login ativo do Claude Code (`claude auth`).
 
 ```bash
 ./build-app.sh                    # dist/ClaudeStatusBar.app (arquitetura local)
-./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.3.dmg
+./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.4.dmg
 ./build-app.sh --install          # copia para /Applications
 open dist/ClaudeStatusBar.app
 
-./.build/release/ClaudeStatusBar --dump   # imprime os números no terminal
+./.build/release/ClaudeStatusBar --dump      # imprime os números no terminal
+./.build/release/ClaudeStatusBar --version   # imprime a versão
 ```
 
 Precisa da toolchain Swift (Command Line Tools bastam — o `--universal` usa
@@ -48,8 +49,8 @@ O GitHub Actions faz o build e sobe o artefato:
 
 ```bash
 # 1. atualize VERSION e CHANGELOG.md
-git commit -am "Release 1.0.3"
-git tag v1.0.3
+git commit -am "Release 1.0.4"
+git tag v1.0.4
 git push origin main --tags
 ```
 

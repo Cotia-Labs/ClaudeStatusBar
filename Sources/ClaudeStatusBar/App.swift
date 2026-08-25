@@ -6,6 +6,11 @@ enum ClaudeStatusBarApp {
     static func main() {
         // `--dump` prints the parsed usage windows and exits: handy for
         // checking the endpoint without opening the UI.
+        if CommandLine.arguments.contains("--version") {
+            print("\(AppInfo.displayName) \(AppInfo.versionLabel)")
+            return
+        }
+
         if CommandLine.arguments.contains("--dump") {
             DebugDump.run()
             return

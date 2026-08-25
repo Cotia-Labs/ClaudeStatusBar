@@ -75,6 +75,19 @@ struct UsagePanel: View {
     }
 
     private var statusFooter: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            serviceStatus
+            HStack {
+                Text(AppInfo.displayName)
+                Spacer()
+                Text(AppInfo.versionLabel)
+            }
+            .font(.system(size: 10))
+            .foregroundStyle(.tertiary)
+        }
+    }
+
+    private var serviceStatus: some View {
         HStack(spacing: 6) {
             let severity = store.status.map { Severity.fromIndicator($0.status.indicator) } ?? .unknown
             Circle()
