@@ -35,11 +35,15 @@ jobs:
           fi
 
       - name: Importar certificado Developer ID (opcional)
-        if: ${{ secrets.SIGNING_CERTIFICATE_P12 != '' }}
         env:
           CERT_P12: ${{ secrets.SIGNING_CERTIFICATE_P12 }}
           CERT_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
         run: |
+          # O contexto `secrets` não existe em `if:`, então o pulo é aqui dentro.
+          if [ -z "$CERT_P12" ]; then
+            echo "Sem certificado nos secrets; o build sairá ad-hoc."
+            exit 0
+          fi
           # Keychain temporária só para este runner; some junto com a VM.
           keychain="$RUNNER_TEMP/signing.keychain-db"
           password="$(uuidgen)"
