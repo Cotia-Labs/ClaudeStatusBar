@@ -26,11 +26,11 @@ actor UsageFetcher {
 
         var errorDescription: String? {
             switch self {
-            case .unauthorized: return "Token expirado. Rode `claude` para renovar o login."
+            case .unauthorized: return L("Token expired. Run `claude` to sign in again.")
             case .throttled(let retryAfter):
-                let wait = retryAfter.map { " Nova tentativa em \(Int($0.rounded())) s." } ?? ""
-                return "Consulta limitada pelo servidor (429).\(wait)"
-            case .http(let code): return "Resposta inesperada do servidor (HTTP \(code))."
+                let wait = retryAfter.map { L(" Retrying in %d s.", Int($0.rounded())) } ?? ""
+                return L("Rate limited by the server (429).") + wait
+            case .http(let code): return L("Unexpected server response (HTTP %d).", code)
             }
         }
     }

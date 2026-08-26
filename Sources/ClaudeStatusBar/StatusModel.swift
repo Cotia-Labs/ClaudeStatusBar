@@ -77,12 +77,12 @@ enum Severity {
 
     var label: String {
         switch self {
-        case .operational: return "Operacional"
-        case .degraded: return "Desempenho degradado"
-        case .partialOutage: return "Interrupção parcial"
-        case .majorOutage: return "Interrupção grave"
-        case .maintenance: return "Em manutenção"
-        case .unknown: return "Desconhecido"
+        case .operational: return L("Operational")
+        case .degraded: return L("Degraded performance")
+        case .partialOutage: return L("Partial outage")
+        case .majorOutage: return L("Major outage")
+        case .maintenance: return L("Under maintenance")
+        case .unknown: return L("Unknown")
         }
     }
 

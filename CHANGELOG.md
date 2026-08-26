@@ -5,6 +5,32 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.9] — 2026-08-25
+
+### Adicionado
+
+- **Inglês e português.** A interface passou a ser localizada: inglês é o
+  idioma base e o pt-BR vem como tradução, escolhidos pelo idioma do sistema.
+  As datas e o countdown seguem o locale do usuário em vez de pt_BR fixo.
+- **Estilo da barra de menus.** Novo submenu "Barra de menus" com quatro
+  opções: anel, anel + porcentagem, só a porcentagem, e ponto.
+- **Modo discreto.** "Discreto abaixo de" (25 / 50 / 75%) reduz o indicador a
+  um pontinho esmaecido enquanto a sessão está longe do limite. O ícone nunca
+  some de vez — continua clicável para abrir o painel e o menu.
+- **Respeito ao Reduzir Movimento.** Com a opção ligada em Acessibilidade, o
+  anel salta direto para o valor, para de pulsar em 95%, e as barras do painel
+  perdem as animações de spring.
+- **Auto-update com Sparkle.** Havendo atualização, o app baixa e instala
+  sozinho, sem arrastar DMG. `scripts/make-appcast.sh` gera o `appcast.xml`
+  assinado e o workflow de release o publica em `main`.
+
+### Alterado
+
+- "Avisar sobre novas versões" virou "Verificar atualizações automaticamente"
+  e agora controla o agendamento do Sparkle.
+- O aviso via API de releases do GitHub só entra em ação quando o Sparkle não
+  está disponível (build sem chave pública EdDSA, ou execução sem bundle).
+
 ## [1.0.8] — 2026-08-25
 
 ### Adicionado

@@ -4,7 +4,7 @@ import Foundation
 /// the source when running the bare executable (`swift run`), which has no
 /// Info.plist to read.
 enum AppInfo {
-    static let fallbackVersion = "1.0.8"
+    static let fallbackVersion = "1.0.9"
 
     static let publisher = "Cotia Labs"
 
@@ -13,7 +13,7 @@ enum AppInfo {
     }
 
     /// Assinatura mostrada no rodapé do painel.
-    static var signature: String { "por \(publisher)" }
+    static var signature: String { L("by %@", publisher) }
 
     static let publisherURL = URL(string: "https://github.com/Cotia-Labs/ClaudeStatusBar")!
 

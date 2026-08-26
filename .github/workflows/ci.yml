@@ -31,10 +31,25 @@ jobs:
           codesign --verify --strict "$app"
           plutil -lint "$app/Contents/Info.plist"
 
+      - name: Conferir as traduções
+        # Toda chave usada em L("…") precisa existir nos dois .lproj.
+        run: |
+          grep -ohE 'L\("([^"\\]|\\.)*"' Sources/ClaudeStatusBar/*.swift \
+            | sed 's/^L("//; s/"$//' | sort -u > /tmp/keys.txt
+          status=0
+          for lang in en pt-BR; do
+            plutil -lint "Resources/$lang.lproj/Localizable.strings"
+            while IFS= read -r key; do
+              grep -qF "\"$key\" = " "Resources/$lang.lproj/Localizable.strings" \
+                || { echo "$lang: falta a chave: $key"; status=1; }
+            done < /tmp/keys.txt
+          done
+          exit $status
+
       - name: Smoke test do --dump
         # Sem credenciais no runner, o esperado é a mensagem de token ausente:
         # o que se testa aqui é que o binário roda e sai limpo.
         run: |
           output="$(./dist/ClaudeStatusBar.app/Contents/MacOS/ClaudeStatusBar --dump)"
           echo "$output"
-          echo "$output" | grep -q "Erro:"
+          echo "$output" | grep -qE "Error:|Erro:"

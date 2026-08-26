@@ -12,7 +12,7 @@ enum Credentials {
         case notFound
 
         var errorDescription: String? {
-            "Nenhum token do Claude Code encontrado. Faça login com `claude` e tente de novo."
+            L("No Claude Code token found. Sign in with `claude` and try again.")
         }
     }
 

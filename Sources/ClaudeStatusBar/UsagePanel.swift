@@ -6,6 +6,7 @@ struct UsagePanel: View {
     @ObservedObject var store: UsageStore
     var onRefresh: () -> Void
     var onOpenMenu: (NSView) -> Void
+    var onUpdate: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -29,8 +30,8 @@ struct UsagePanel: View {
                 errorBox(error)
             }
 
-            if let release = store.availableUpdate {
-                updateBanner(release)
+            if let update = store.availableUpdate {
+                updateBanner(update)
             }
 
             Divider()
@@ -42,19 +43,19 @@ struct UsagePanel: View {
 
     private var header: some View {
         HStack {
-            Text("Limites de uso do plano")
+            Text(L("Plan usage limits"))
                 .font(.system(size: 13, weight: .semibold))
             Spacer()
             Button(action: onRefresh) {
                 Image(systemName: "arrow.clockwise")
-                    .rotationEffect(.degrees(store.isRefreshing ? 360 : 0))
-                    .animation(store.isRefreshing
+                    .rotationEffect(.degrees(store.isRefreshing && !Preferences.reduceMotion ? 360 : 0))
+                    .animation(store.isRefreshing && !Preferences.reduceMotion
                                ? .linear(duration: 0.9).repeatForever(autoreverses: false)
                                : .default,
                                value: store.isRefreshing)
             }
             .buttonStyle(.plain)
-            .help("Atualizar agora")
+            .help(L("Refresh now"))
 
             MenuButton(action: onOpenMenu)
                 .frame(width: 16, height: 16)
@@ -67,7 +68,7 @@ struct UsagePanel: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(message).font(.system(size: 11)).fixedSize(horizontal: false, vertical: true)
                 if let lastGood = store.lastGoodUpdate, store.usage != nil {
-                    Text("Mostrando dados de \(Formatters.absolute(from: lastGood)).")
+                    Text(L("Showing data from %@.", Formatters.absolute(from: lastGood)))
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 }
@@ -78,20 +79,20 @@ struct UsagePanel: View {
         .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
     }
 
-    private func updateBanner(_ release: Release) -> some View {
+    private func updateBanner(_ update: UsageStore.AvailableUpdate) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "arrow.down.circle.fill").foregroundStyle(.blue)
-            Text("Versão \(release.version) disponível")
+            Text(L("Version %@ available", update.version))
                 .font(.system(size: 11))
             Spacer()
-            Text("Baixar").font(.system(size: 11, weight: .semibold))
+            Text(update.url == nil ? L("Install") : L("Download")).font(.system(size: 11, weight: .semibold))
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
         .contentShape(Rectangle())
-        .onTapGesture { NSWorkspace.shared.open(release.htmlURL) }
-        .help("Abrir a release no GitHub")
+        .onTapGesture(perform: onUpdate)
+        .help(update.url == nil ? L("Install the update now") : L("Open the release on GitHub"))
     }
 
     private var statusFooter: some View {
@@ -107,7 +108,7 @@ struct UsagePanel: View {
             .foregroundStyle(.tertiary)
             .contentShape(Rectangle())
             .onTapGesture { NSWorkspace.shared.open(AppInfo.publisherURL) }
-            .help("Abrir o repositório da \(AppInfo.publisher)")
+            .help(L("Open the %@ repository", AppInfo.publisher))
         }
     }
 
@@ -117,7 +118,7 @@ struct UsagePanel: View {
             Circle()
                 .fill(severity.swiftUIColor)
                 .frame(width: 7, height: 7)
-            Text(store.status?.status.description ?? "Status indisponível")
+            Text(store.status?.status.description ?? L("Status unavailable"))
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -150,7 +151,7 @@ private struct UsageRow: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(title).font(.system(size: 12, weight: .medium))
                 Spacer()
-                Text("\(Int(window.utilization.rounded()))% usado")
+                Text(L("%d%% used", Int(window.utilization.rounded())))
                     .font(.system(size: 11, weight: .semibold).monospacedDigit())
                     .foregroundStyle(level.swiftUIColor)
                     .contentTransition(.numericText())
@@ -175,11 +176,14 @@ private struct UsageRow: View {
             }
         }
         .onAppear {
+            // Reduce Motion: land on the value instead of springing into it.
+            guard !Preferences.reduceMotion else { shown = window.fraction; return }
             withAnimation(.spring(response: 0.7, dampingFraction: 0.8).delay(delay)) {
                 shown = window.fraction
             }
         }
         .onChange(of: window.fraction) { newValue in
+            guard !Preferences.reduceMotion else { shown = newValue; return }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) { shown = newValue }
         }
     }
@@ -193,8 +197,8 @@ private struct ResetLabel: View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             let remaining = date.timeIntervalSince(context.date)
             Text(remaining > 0 && remaining < 12 * 3600
-                 ? "Reinicia em \(Formatters.countdown(to: date, now: context.date))"
-                 : "Reinicia \(Formatters.absolute(from: date))")
+                 ? L("Resets in %@", Formatters.countdown(to: date, now: context.date))
+                 : L("Resets %@", Formatters.absolute(from: date)))
                 .font(.system(size: 10).monospacedDigit())
                 .foregroundStyle(.secondary)
         }
@@ -207,11 +211,11 @@ private struct MenuButton: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSButton {
         let button = NSButton(image: NSImage(systemSymbolName: "ellipsis.circle",
-                                             accessibilityDescription: "Opções")!,
+                                             accessibilityDescription: L("Options"))!,
                               target: context.coordinator,
                               action: #selector(Coordinator.fire(_:)))
         button.isBordered = false
-        button.toolTip = "Opções"
+        button.toolTip = L("Options")
         return button
     }
 

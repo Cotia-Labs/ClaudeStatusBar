@@ -6,6 +6,11 @@
 #   ./build-app.sh --dmg        gera também dist/ClaudeStatusBar-<versão>.dmg
 #   ./build-app.sh --install    copia o .app para /Applications
 #
+# Variáveis de ambiente:
+#   SIGNING_IDENTITY        assina com Developer ID em vez de ad-hoc
+#   SPARKLE_PUBLIC_ED_KEY   chave pública EdDSA; sem ela o app é empacotado
+#                           sem o feed do Sparkle e cai no aviso via GitHub
+#
 # As flags podem ser combinadas.
 set -euo pipefail
 
@@ -51,18 +56,62 @@ sed -e "s/__VERSION__/${VERSION}/" -e "s/__BUILD__/${BUILD}/" \
 # O ícone é referenciado pelo Info.plist como CFBundleIconFile = AppIcon.
 cp logo.icns "$APP/Contents/Resources/AppIcon.icns"
 
+# Traduções: Localization.swift resolve as chaves em Contents/Resources.
+for lproj in Resources/*.lproj; do
+    [ -d "$lproj" ] || continue
+    cp -R "$lproj" "$APP/Contents/Resources/"
+done
+
+# Sparkle: o framework vem do artefato baixado pelo SwiftPM (fatia universal),
+# e o binário procura por @executable_path/../Frameworks (ver Package.swift).
+SPARKLE_FRAMEWORK=".build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
+if [ ! -d "$SPARKLE_FRAMEWORK" ]; then
+    echo "Sparkle.framework não encontrado em $SPARKLE_FRAMEWORK" >&2
+    echo "Rode 'swift build' uma vez para o SwiftPM baixar o artefato." >&2
+    exit 1
+fi
+mkdir -p "$APP/Contents/Frameworks"
+cp -R "$SPARKLE_FRAMEWORK" "$APP/Contents/Frameworks/"
+
+# O feed só entra quando existe chave pública para validar a assinatura do
+# update. Sem ela o Updater se declara indisponível e o app usa o aviso antigo.
+if [ -n "${SPARKLE_PUBLIC_ED_KEY:-}" ]; then
+    PLIST="$APP/Contents/Info.plist"
+    plutil -insert SUFeedURL -string \
+        "https://raw.githubusercontent.com/Cotia-Labs/ClaudeStatusBar/main/appcast.xml" "$PLIST"
+    plutil -insert SUPublicEDKey -string "$SPARKLE_PUBLIC_ED_KEY" "$PLIST"
+    plutil -insert SUEnableAutomaticChecks -bool true "$PLIST"
+    plutil -insert SUScheduledCheckInterval -integer 86400 "$PLIST"
+    echo "Sparkle habilitado (appcast + chave pública)."
+else
+    echo "SPARKLE_PUBLIC_ED_KEY ausente: app empacotado sem auto-update."
+fi
+
 # Com SIGNING_IDENTITY (ex.: "Developer ID Application: Cotia Labs (TEAMID)")
 # a assinatura sai com hardened runtime e timestamp, pronta para notarização.
 # Sem ela, cai na assinatura ad-hoc: roda localmente, mas o Gatekeeper pede a
 # primeira abertura pelo menu contextual (ver README).
 IDENTITY="${SIGNING_IDENTITY:--}"
+SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
 if [ "$IDENTITY" = "-" ]; then
-    codesign --force --deep --sign - "$APP"
+    SIGN_ARGS=(--force --sign -)
+else
+    SIGN_ARGS=(--force --options runtime --timestamp --sign "$IDENTITY")
+fi
+
+# `--deep` não serve aqui: os helpers do Sparkle precisam ser assinados antes
+# do framework, e o framework antes do app, ou o Gatekeeper rejeita o bundle.
+codesign "${SIGN_ARGS[@]}" "$SPARKLE/Versions/B/XPCServices/Downloader.xpc"
+codesign "${SIGN_ARGS[@]}" "$SPARKLE/Versions/B/XPCServices/Installer.xpc"
+codesign "${SIGN_ARGS[@]}" "$SPARKLE/Versions/B/Autoupdate"
+codesign "${SIGN_ARGS[@]}" "$SPARKLE/Versions/B/Updater.app"
+codesign "${SIGN_ARGS[@]}" "$SPARKLE"
+codesign "${SIGN_ARGS[@]}" "$APP"
+
+if [ "$IDENTITY" = "-" ]; then
     echo "Assinado ad-hoc (sem Developer ID)."
 else
-    codesign --force --deep --options runtime --timestamp \
-        --sign "$IDENTITY" "$APP"
-    codesign --verify --strict --deep "$APP"
+    codesign --verify --strict --verbose=1 "$APP"
     echo "Assinado com: $IDENTITY"
 fi
 echo "Gerado: $APP (versão ${VERSION}, build ${BUILD})"

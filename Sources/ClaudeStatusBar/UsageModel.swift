@@ -44,10 +44,10 @@ struct UsageSnapshot: Decodable, Equatable {
 
     var rows: [(title: String, subtitle: String, window: UsageWindow)] {
         var result: [(String, String, UsageWindow)] = []
-        if let fiveHour { result.append(("Sessão atual", "Janela de 5 horas", fiveHour)) }
-        if let sevenDay { result.append(("Todos os modelos", "Semanal", sevenDay)) }
-        if let sevenDayOpus { result.append(("Opus", "Semanal", sevenDayOpus)) }
-        if let sevenDaySonnet { result.append(("Sonnet", "Semanal", sevenDaySonnet)) }
+        if let fiveHour { result.append((L("Current session"), L("5-hour window"), fiveHour)) }
+        if let sevenDay { result.append((L("All models"), L("Weekly"), sevenDay)) }
+        if let sevenDayOpus { result.append((L("Opus"), L("Weekly"), sevenDayOpus)) }
+        if let sevenDaySonnet { result.append((L("Sonnet"), L("Weekly"), sevenDaySonnet)) }
         return result
     }
 }

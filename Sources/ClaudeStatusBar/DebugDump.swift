@@ -11,11 +11,11 @@ enum DebugDump {
                 for row in snapshot.rows {
                     let reset = row.window.resetsAt.map { Formatters.absolute(from: $0) } ?? "—"
                     let label = row.title.padding(toLength: 18, withPad: " ", startingAt: 0)
-                    print("\(label) \(String(format: "%5.1f", row.window.utilization))%  reinicia \(reset)")
+                    print("\(label) \(String(format: "%5.1f", row.window.utilization))%  \(L("resets %@", reset))")
                 }
-                if snapshot.rows.isEmpty { print("Nenhuma janela ativa retornada.") }
+                if snapshot.rows.isEmpty { print(L("No active window returned.")) }
             } catch {
-                print("Erro: \(error.localizedDescription)")
+                print(L("Error: %@", error.localizedDescription))
             }
         }
         semaphore.wait()
@@ -29,11 +29,11 @@ enum DebugDump {
             do {
                 let release = try await UpdateChecker().latest()
                 let newer = isVersion(release.version, newerThan: AppInfo.version)
-                print("instalada: \(AppInfo.version)")
-                print("publicada: \(release.version) — \(release.htmlURL.absoluteString)")
-                print(newer ? "há atualização disponível" : "está atualizado")
+                print(L("installed: %@", AppInfo.version))
+                print(L("published: %1$@ — %2$@", release.version, release.htmlURL.absoluteString))
+                print(newer ? L("an update is available") : L("up to date"))
             } catch {
-                print("falha ao consultar releases: \(error.localizedDescription)")
+                print(L("could not query releases: %@", error.localizedDescription))
             }
         }
         semaphore.wait()

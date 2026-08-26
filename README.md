@@ -4,7 +4,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.0.8** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.0.9** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalar
 
@@ -26,7 +26,7 @@ Requisitos: macOS 13+ e login ativo do Claude Code (`claude auth`).
 
 ```bash
 ./build-app.sh                    # dist/ClaudeStatusBar.app (arquitetura local)
-./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.8.dmg
+./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.9.dmg
 ./build-app.sh --install          # copia para /Applications
 open dist/ClaudeStatusBar.app
 
@@ -50,8 +50,8 @@ O GitHub Actions faz o build e sobe o artefato:
 
 ```bash
 # 1. atualize VERSION e CHANGELOG.md
-git commit -am "Release 1.0.8"
-git tag v1.0.8
+git commit -am "Release 1.0.9"
+git tag v1.0.9
 git push origin main --tags
 ```
 
@@ -78,7 +78,16 @@ temporária quando estes secrets existem (sem eles, segue ad-hoc):
 Na barra: um **anel que enche** com o percentual da **sessão atual** (janela de 5 horas).
 Verde → amarelo → laranja → vermelho, com pulsação lenta acima de 95%.
 O anel faz easing até o novo valor a cada atualização, nunca salta.
-Opcionalmente mostra a porcentagem em texto ao lado.
+O estilo é escolhido no menu: **anel**, **anel + porcentagem**, **só a
+porcentagem** ou **ponto**. O **modo discreto** encolhe tudo para um pontinho
+esmaecido enquanto a sessão está abaixo de 25/50/75% — sem nunca esconder o
+ícone, que continua clicável.
+
+Com **Reduzir Movimento** ligado em Acessibilidade, o anel salta direto para o
+valor, não pulsa em 95%, e as barras do painel não usam spring.
+
+A interface é localizada: **inglês** (base) e **português do Brasil**, seguindo
+o idioma do sistema.
 
 Clique abre o painel:
 
@@ -100,17 +109,45 @@ percentual usa `contentTransition(.numericText())`, e o contador
 "Reinicia em…" corre em tempo real (TimelineView de 1 s).
 
 Clique com o botão direito (ou no `⋯`) abre as opções: intervalo de
-atualização (1 / 5 / 15 / 30 min), porcentagem na barra, avisos em 80% e
-95%, abrir no login, e o link do status page.
+atualização (1 / 5 / 15 / 30 min), estilo da barra de menus, modo discreto,
+avisos em 80% e 95%, verificação automática de atualizações, abrir no login,
+e o link do status page.
 
 ## Atualizações
 
-O app consulta a API pública de releases deste repositório ao abrir e uma vez
-por dia (nenhum token, nenhuma telemetria). Saindo uma versão maior que a
-instalada, chega uma notificação do sistema — clicar nela abre a página da
-release — e o painel mostra uma faixa "Versão X disponível". A instalação
-segue manual: baixar o DMG e arrastar para Applications. Para desligar, use
-"Avisar sobre novas versões" no menu de opções.
+Com o Sparkle configurado (ver abaixo), o app checa o `appcast.xml` do
+repositório ao abrir e uma vez por dia, mostra a janela do Sparkle quando há
+versão nova, e **baixa e instala sozinho** — sem arrastar DMG. O painel também
+mostra a faixa "Versão X disponível". Para desligar a checagem automática, use
+"Verificar atualizações automaticamente" no menu.
+
+Sem as chaves do Sparkle no build, o app cai no comportamento antigo: consulta
+a API pública de releases do GitHub (sem token, sem telemetria) e avisa por
+notificação, com instalação manual.
+
+### Habilitar o auto-update
+
+O Sparkle exige um par de chaves EdDSA; só a pública vai no app.
+
+```bash
+# 1. gere o par uma única vez (a privada fica no Keychain e é impressa uma vez)
+curl -fsSL https://github.com/sparkle-project/Sparkle/releases/download/2.9.6/Sparkle-2.9.6.tar.xz \
+  | tar -xJ -C /tmp && /tmp/bin/generate_keys
+```
+
+Guarde as duas nos secrets do repositório:
+
+| Secret | Valor |
+| --- | --- |
+| `SPARKLE_PUBLIC_ED_KEY` | a chave pública impressa pelo `generate_keys` |
+| `SPARKLE_PRIVATE_ED_KEY` | a chave privada (`generate_keys -x -` para exportar) |
+
+A partir daí, cada tag `v*` gera o DMG, assina com a chave privada, atualiza
+`appcast.xml` e comita o arquivo em `main` — que é de onde o app lê o feed
+(`raw.githubusercontent.com/Cotia-Labs/ClaudeStatusBar/main/appcast.xml`).
+
+Localmente, `SPARKLE_PUBLIC_ED_KEY=… ./build-app.sh` embute o feed; sem a
+variável, o app é empacotado sem auto-update de propósito.
 
 ## De onde vêm os dados
 
@@ -148,6 +185,8 @@ Intervalos disponíveis: 1 / 5 / 15 / 30 min (padrão 5 min).
 | `StatusFetcher.swift` / `StatusModel.swift` | Status page |
 | `AppInfo.swift` | Versão e nome lidos do bundle |
 | `Preferences.swift` / `Notifier.swift` | Ajustes e notificações locais |
+| `Localization.swift` | Helper `L("…")`; strings em `Resources/*.lproj` |
+| `Updater.swift` | Sparkle: appcast, download e instalação in-place |
 
 ## Licença
 

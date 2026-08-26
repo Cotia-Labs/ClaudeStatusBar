@@ -13,8 +13,16 @@ final class UsageStore: ObservableObject {
     /// last attempt. Drives the "dados de …" note when a refresh fails.
     @Published private(set) var lastGoodUpdate: Date?
     @Published private(set) var isRefreshing = false
-    /// Release mais recente do GitHub, quando é mais nova que a instalada.
-    @Published private(set) var availableUpdate: Release?
+    /// Versão mais nova já anunciada, seja pelo appcast do Sparkle ou pela
+    /// API de releases do GitHub (fallback fora do bundle).
+    @Published private(set) var availableUpdate: AvailableUpdate?
+
+    /// `url` só existe no caminho legado: com Sparkle a instalação é in-place,
+    /// não há DMG para abrir no navegador.
+    struct AvailableUpdate: Equatable {
+        let version: String
+        let url: URL?
+    }
 
     /// Shortest gap between two calls to the usage endpoint.
     private static let minimumSpacing: TimeInterval = 60
@@ -27,6 +35,7 @@ final class UsageStore: ObservableObject {
     private let statusFetcher = StatusFetcher()
     private let notifier = Notifier()
     private let updateChecker = UpdateChecker()
+    private let updater = Updater()
     private var timer: Timer?
     private var updateTimer: Timer?
     private var notifiedThresholds: Set<Int> = []
@@ -42,6 +51,13 @@ final class UsageStore: ObservableObject {
         refresh()
         rescheduleTimer()
 
+        // Com Sparkle presente, ele é quem agenda a checagem e avisa o
+        // usuário; a rota do GitHub só sobra para builds sem bundle.
+        updater.onUpdateFound = { [weak self] version in
+            self?.availableUpdate = AvailableUpdate(version: version, url: nil)
+        }
+        guard !updater.isAvailable else { return }
+
         checkForUpdates()
         // Uma vez por dia basta: o repositório é público, mas a API anônima do
         // GitHub dá 60 chamadas por hora por IP.
@@ -51,9 +67,27 @@ final class UsageStore: ObservableObject {
         updateTimer?.tolerance = 3600
     }
 
-    /// Consulta a última release. A checagem automática é silenciosa quando
-    /// falha (offline, limite da API); `manual` avisa o resultado de qualquer
-    /// jeito, inclusive quando já se está na versão mais nova.
+    /// Repassa o estado do menu "Verificar atualizações automaticamente".
+    func applyUpdatePreference() {
+        updater.applyPreference()
+    }
+
+    /// O que o item de menu e a faixa do painel disparam. Com Sparkle, abre a
+    /// janela dele (que também instala); sem Sparkle, consulta a API do GitHub.
+    func actOnUpdate() {
+        if updater.isAvailable {
+            updater.checkNow()
+        } else if let url = availableUpdate?.url {
+            NSWorkspace.shared.open(url)
+        } else {
+            checkForUpdates(manual: true)
+        }
+    }
+
+    /// Caminho legado (sem bundle / sem appcast): consulta a última release.
+    /// A checagem automática é silenciosa quando falha (offline, limite da
+    /// API); `manual` avisa o resultado de qualquer jeito, inclusive quando já
+    /// se está na versão mais nova.
     func checkForUpdates(manual: Bool = false) {
         guard manual || Preferences.checkForUpdates else { return }
         Task { @MainActor [weak self] in
@@ -61,8 +95,8 @@ final class UsageStore: ObservableObject {
             let checker = self.updateChecker
             guard let release = try? await checker.latest() else {
                 if manual {
-                    self.notifier.notify(title: "Não foi possível verificar atualizações",
-                                         body: "Tente de novo em alguns minutos.")
+                    self.notifier.notify(title: L("Could not check for updates"),
+                                         body: L("Try again in a few minutes."))
                 }
                 return
             }
@@ -70,18 +104,18 @@ final class UsageStore: ObservableObject {
             guard isVersion(release.version, newerThan: AppInfo.version) else {
                 self.availableUpdate = nil
                 if manual {
-                    self.notifier.notify(title: "\(AppInfo.displayName) está atualizado",
-                                         body: "Você já está na versão \(AppInfo.version).")
+                    self.notifier.notify(title: L("%@ is up to date", AppInfo.displayName),
+                                         body: L("You are already on version %@.", AppInfo.version))
                 }
                 return
             }
 
-            self.availableUpdate = release
+            self.availableUpdate = AvailableUpdate(version: release.version, url: release.htmlURL)
             // Sem isto, a mesma release voltaria a avisar a cada checagem.
             guard manual || Preferences.lastNotifiedVersion != release.version else { return }
             Preferences.lastNotifiedVersion = release.version
-            self.notifier.notify(title: "Nova versão \(release.version) disponível",
-                                 body: "Você tem a \(AppInfo.version). Clique para baixar o DMG.",
+            self.notifier.notify(title: L("New version %@ available", release.version),
+                                 body: L("You have %@. Click to download the DMG.", AppInfo.version),
                                  link: release.htmlURL)
         }
     }
@@ -158,8 +192,9 @@ final class UsageStore: ObservableObject {
             && !notifiedThresholds.contains(threshold) {
             notifiedThresholds.insert(threshold)
             notifier.notify(
-                title: "Uso do Claude em \(Int(window.utilization))%",
-                body: window.resetsAt.map { "Reinicia \(Formatters.absolute(from: $0))" } ?? "Limite do plano"
+                title: L("Claude usage at %d%%", Int(window.utilization)),
+                body: window.resetsAt.map { L("Resets %@", Formatters.absolute(from: $0)) }
+                    ?? L("Plan limit")
             )
         }
     }
@@ -180,7 +215,7 @@ enum Formatters {
     /// "sáb., 11:00" for resets further out than today.
     static func absolute(from date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "pt_BR")
+        formatter.locale = .autoupdatingCurrent
         formatter.setLocalizedDateFormatFromTemplate(
             Calendar.current.isDateInToday(date) ? "HH:mm" : "EEE, HH:mm"
         )

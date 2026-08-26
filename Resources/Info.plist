@@ -6,6 +6,13 @@
     <string>ClaudeStatusBar</string>
     <key>CFBundleDisplayName</key>
     <string>Claude Status</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>pt-BR</string>
+    </array>
     <key>CFBundleIdentifier</key>
     <string>net.eduapx.ClaudeStatusBar</string>
     <key>CFBundleExecutable</key>
@@ -21,6 +28,9 @@
     <string>__BUILD__</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
+    <!-- As chaves do Sparkle (SUFeedURL, SUPublicEDKey, SUEnableAutomaticChecks,
+         SUScheduledCheckInterval) são inseridas por build-app.sh quando existe
+         SPARKLE_PUBLIC_ED_KEY. Sem elas o app não tenta auto-atualizar. -->
     <key>LSUIElement</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
