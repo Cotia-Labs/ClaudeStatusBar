@@ -1,5 +1,7 @@
 # ClaudeStatusBar
 
+![O anel na barra de menus e o painel de limites de uso](docs/banner.png)
+
 Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.

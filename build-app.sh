@@ -64,9 +64,12 @@ done
 
 # Sparkle: o framework vem do artefato baixado pelo SwiftPM (fatia universal),
 # e o binário procura por @executable_path/../Frameworks (ver Package.swift).
-SPARKLE_FRAMEWORK=".build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
-if [ ! -d "$SPARKLE_FRAMEWORK" ]; then
-    echo "Sparkle.framework não encontrado em $SPARKLE_FRAMEWORK" >&2
+# O `--universal` compila com --scratch-path, então o artefato pode estar em
+# .build/artifacts ou em .build/<arch>/artifacts; procurar cobre os dois casos.
+SPARKLE_FRAMEWORK="$(find .build -type d \
+    -path "*/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework" -print -quit 2>/dev/null || true)"
+if [ -z "$SPARKLE_FRAMEWORK" ] || [ ! -d "$SPARKLE_FRAMEWORK" ]; then
+    echo "Sparkle.framework não encontrado em .build" >&2
     echo "Rode 'swift build' uma vez para o SwiftPM baixar o artefato." >&2
     exit 1
 fi
