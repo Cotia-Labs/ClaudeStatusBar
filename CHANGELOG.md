@@ -5,6 +5,15 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.5] — 2026-08-25
+
+### Adicionado
+
+- Licença do projeto: código aberto para uso não comercial, sob a
+  [PolyForm Noncommercial License 1.0.0](LICENSE.md), com nota de copyright
+  no `Info.plist` e seção de licença no README.
+- Item "Licença: uso não comercial" no menu de opções, abrindo o texto.
+
 ## [1.0.4] — 2026-08-25
 
 ### Adicionado
@@ -74,7 +83,8 @@ Primeira versão.
   e painel que mantém os últimos números bons quando um refresh falha.
 - O app é assinado apenas ad-hoc; não é notarizado.
 
-[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.4...HEAD
+[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.1...v1.0.2

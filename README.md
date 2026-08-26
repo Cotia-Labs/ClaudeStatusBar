@@ -4,7 +4,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.0.4** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.0.5** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalar
 
@@ -26,7 +26,7 @@ Requisitos: macOS 13+ e login ativo do Claude Code (`claude auth`).
 
 ```bash
 ./build-app.sh                    # dist/ClaudeStatusBar.app (arquitetura local)
-./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.4.dmg
+./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.5.dmg
 ./build-app.sh --install          # copia para /Applications
 open dist/ClaudeStatusBar.app
 
@@ -49,8 +49,8 @@ O GitHub Actions faz o build e sobe o artefato:
 
 ```bash
 # 1. atualize VERSION e CHANGELOG.md
-git commit -am "Release 1.0.4"
-git tag v1.0.4
+git commit -am "Release 1.0.5"
+git tag v1.0.5
 git push origin main --tags
 ```
 
@@ -120,4 +120,27 @@ Intervalos disponíveis: 1 / 5 / 15 / 30 min (padrão 5 min).
 | `UsageFetcher.swift` / `UsageModel.swift` | Endpoint de uso e modelo |
 | `Credentials.swift` | Leitura do token OAuth local |
 | `StatusFetcher.swift` / `StatusModel.swift` | Status page |
+| `AppInfo.swift` | Versão e nome lidos do bundle |
 | `Preferences.swift` / `Notifier.swift` | Ajustes e notificações locais |
+
+## Licença
+
+Código aberto para **uso não comercial**, sob a
+[PolyForm Noncommercial License 1.0.0](LICENSE.md).
+
+Na prática:
+
+- **Pode** usar, estudar, modificar, redistribuir e publicar forks, desde que
+  o propósito não seja comercial e que a licença acompanhe as cópias.
+- **Pode** usar sem custo em pesquisa, estudo, projetos pessoais e hobby, e
+  dentro de organizações sem fins lucrativos e instituições de ensino.
+- **Não pode** usar em produto ou serviço comercial, vender, embutir em
+  software pago, nem usar em atividade que gere receita para uma empresa.
+
+Para uso comercial, procure os mantenedores para uma licença à parte.
+
+Nota: por restringir o uso comercial, a PolyForm Noncommercial não é
+considerada "open source" pela definição da OSI (nem "livre" pela FSF) — o
+código é público e modificável, mas com essa limitação de finalidade.
+
+Copyright 2026 Cotia Labs.

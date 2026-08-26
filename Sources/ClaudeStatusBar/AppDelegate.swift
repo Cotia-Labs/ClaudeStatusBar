@@ -129,6 +129,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         statusItemEntry.target = self
         menu.addItem(statusItemEntry)
 
+        let licenseItem = NSMenuItem(title: "Licença: uso não comercial",
+                                     action: #selector(openLicense),
+                                     keyEquivalent: "")
+        licenseItem.target = self
+        menu.addItem(licenseItem)
+
         let quit = NSMenuItem(title: "Sair", action: #selector(quit), keyEquivalent: "q")
         quit.target = self
         menu.addItem(.separator())
@@ -179,6 +185,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             alert.messageText = "Não foi possível alterar a abertura no login"
             alert.runModal()
         }
+    }
+
+    @objc private func openLicense() {
+        NSWorkspace.shared.open(
+            URL(string: "https://github.com/Cotia-Labs/ClaudeStatusBar/blob/main/LICENSE.md")!
+        )
     }
 
     @objc private func openStatusPage() {
