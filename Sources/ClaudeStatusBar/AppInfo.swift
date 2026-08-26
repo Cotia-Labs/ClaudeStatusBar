@@ -4,7 +4,7 @@ import Foundation
 /// the source when running the bare executable (`swift run`), which has no
 /// Info.plist to read.
 enum AppInfo {
-    static let fallbackVersion = "1.0.7"
+    static let fallbackVersion = "1.0.8"
 
     static let publisher = "Cotia Labs"
 

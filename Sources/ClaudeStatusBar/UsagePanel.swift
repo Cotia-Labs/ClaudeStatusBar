@@ -29,6 +29,10 @@ struct UsagePanel: View {
                 errorBox(error)
             }
 
+            if let release = store.availableUpdate {
+                updateBanner(release)
+            }
+
             Divider()
             statusFooter
         }
@@ -72,6 +76,22 @@ struct UsagePanel: View {
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func updateBanner(_ release: Release) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.down.circle.fill").foregroundStyle(.blue)
+            Text("Versão \(release.version) disponível")
+                .font(.system(size: 11))
+            Spacer()
+            Text("Baixar").font(.system(size: 11, weight: .semibold))
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+        .contentShape(Rectangle())
+        .onTapGesture { NSWorkspace.shared.open(release.htmlURL) }
+        .help("Abrir a release no GitHub")
     }
 
     private var statusFooter: some View {

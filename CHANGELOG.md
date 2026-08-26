@@ -5,6 +5,23 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.8] — 2026-08-25
+
+### Adicionado
+
+- Aviso de novas versões pelo sistema. O app consulta a última release
+  pública do GitHub ao abrir e uma vez por dia; havendo versão mais nova,
+  manda uma notificação (clicar abre a página de download) e mostra uma
+  faixa "Versão X disponível" no topo do painel.
+- Menu de opções ganhou "Avisar sobre novas versões" (ligado por padrão) e
+  "Verificar atualizações", que vira "Baixar versão X" quando há novidade.
+- Flag `--check-updates` imprime versão instalada, publicada e o veredito.
+
+### Alterado
+
+- Notificações agora aparecem como banner mesmo com o app em background e
+  podem carregar um link, aberto ao clicar.
+
 ## [1.0.7] — 2026-08-25
 
 ### Adicionado

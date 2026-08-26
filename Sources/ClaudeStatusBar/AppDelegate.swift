@@ -137,11 +137,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         menu.addItem(toggle("Avisar em 80% e 95%",
                             #selector(toggleNotify),
                             on: Preferences.notifyOnChange))
+        menu.addItem(toggle("Avisar sobre novas versões",
+                            #selector(toggleUpdateCheck),
+                            on: Preferences.checkForUpdates))
         menu.addItem(toggle("Abrir no login",
                             #selector(toggleLaunchAtLogin),
                             on: SMAppService.mainApp.status == .enabled))
 
         menu.addItem(.separator())
+        let updateItem = NSMenuItem(
+            title: store.availableUpdate.map { "Baixar versão \($0.version)" } ?? "Verificar atualizações",
+            action: #selector(checkForUpdates),
+            keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
+
         let statusItemEntry = NSMenuItem(title: "Abrir status.anthropic.com",
                                          action: #selector(openStatusPage),
                                          keyEquivalent: "")
@@ -186,6 +196,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     @objc private func toggleText() {
         Preferences.showTextInMenuBar.toggle()
         renderGauge()
+    }
+
+    @objc private func toggleUpdateCheck() {
+        Preferences.checkForUpdates.toggle()
+    }
+
+    /// Se já sabemos de uma versão nova, o item vira o atalho de download.
+    @objc private func checkForUpdates() {
+        if let release = store.availableUpdate {
+            NSWorkspace.shared.open(release.htmlURL)
+        } else {
+            store.checkForUpdates(manual: true)
+        }
     }
 
     @objc private func toggleNotify() {

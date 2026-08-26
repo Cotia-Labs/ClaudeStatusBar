@@ -4,7 +4,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.0.7** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.0.8** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalar
 
@@ -26,12 +26,13 @@ Requisitos: macOS 13+ e login ativo do Claude Code (`claude auth`).
 
 ```bash
 ./build-app.sh                    # dist/ClaudeStatusBar.app (arquitetura local)
-./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.7.dmg
+./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.8.dmg
 ./build-app.sh --install          # copia para /Applications
 open dist/ClaudeStatusBar.app
 
 ./.build/release/ClaudeStatusBar --dump      # imprime os números no terminal
 ./.build/release/ClaudeStatusBar --version   # imprime a versão
+./.build/release/ClaudeStatusBar --check-updates  # compara com a última release
 ```
 
 Precisa da toolchain Swift (Command Line Tools bastam — o `--universal` usa
@@ -49,8 +50,8 @@ O GitHub Actions faz o build e sobe o artefato:
 
 ```bash
 # 1. atualize VERSION e CHANGELOG.md
-git commit -am "Release 1.0.7"
-git tag v1.0.7
+git commit -am "Release 1.0.8"
+git tag v1.0.8
 git push origin main --tags
 ```
 
@@ -101,6 +102,15 @@ percentual usa `contentTransition(.numericText())`, e o contador
 Clique com o botão direito (ou no `⋯`) abre as opções: intervalo de
 atualização (1 / 5 / 15 / 30 min), porcentagem na barra, avisos em 80% e
 95%, abrir no login, e o link do status page.
+
+## Atualizações
+
+O app consulta a API pública de releases deste repositório ao abrir e uma vez
+por dia (nenhum token, nenhuma telemetria). Saindo uma versão maior que a
+instalada, chega uma notificação do sistema — clicar nela abre a página da
+release — e o painel mostra uma faixa "Versão X disponível". A instalação
+segue manual: baixar o DMG e arrastar para Applications. Para desligar, use
+"Avisar sobre novas versões" no menu de opções.
 
 ## De onde vêm os dados
 

@@ -13,6 +13,8 @@ final class UsageStore: ObservableObject {
     /// last attempt. Drives the "dados de …" note when a refresh fails.
     @Published private(set) var lastGoodUpdate: Date?
     @Published private(set) var isRefreshing = false
+    /// Release mais recente do GitHub, quando é mais nova que a instalada.
+    @Published private(set) var availableUpdate: Release?
 
     /// Shortest gap between two calls to the usage endpoint.
     private static let minimumSpacing: TimeInterval = 60
@@ -24,7 +26,9 @@ final class UsageStore: ObservableObject {
     private let usageFetcher = UsageFetcher()
     private let statusFetcher = StatusFetcher()
     private let notifier = Notifier()
+    private let updateChecker = UpdateChecker()
     private var timer: Timer?
+    private var updateTimer: Timer?
     private var notifiedThresholds: Set<Int> = []
     private var lastWindowReset: Date?
 
@@ -37,6 +41,49 @@ final class UsageStore: ObservableObject {
         notifier.requestAuthorizationIfNeeded()
         refresh()
         rescheduleTimer()
+
+        checkForUpdates()
+        // Uma vez por dia basta: o repositório é público, mas a API anônima do
+        // GitHub dá 60 chamadas por hora por IP.
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 24 * 3600, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.checkForUpdates() }
+        }
+        updateTimer?.tolerance = 3600
+    }
+
+    /// Consulta a última release. A checagem automática é silenciosa quando
+    /// falha (offline, limite da API); `manual` avisa o resultado de qualquer
+    /// jeito, inclusive quando já se está na versão mais nova.
+    func checkForUpdates(manual: Bool = false) {
+        guard manual || Preferences.checkForUpdates else { return }
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let checker = self.updateChecker
+            guard let release = try? await checker.latest() else {
+                if manual {
+                    self.notifier.notify(title: "Não foi possível verificar atualizações",
+                                         body: "Tente de novo em alguns minutos.")
+                }
+                return
+            }
+
+            guard isVersion(release.version, newerThan: AppInfo.version) else {
+                self.availableUpdate = nil
+                if manual {
+                    self.notifier.notify(title: "\(AppInfo.displayName) está atualizado",
+                                         body: "Você já está na versão \(AppInfo.version).")
+                }
+                return
+            }
+
+            self.availableUpdate = release
+            // Sem isto, a mesma release voltaria a avisar a cada checagem.
+            guard manual || Preferences.lastNotifiedVersion != release.version else { return }
+            Preferences.lastNotifiedVersion = release.version
+            self.notifier.notify(title: "Nova versão \(release.version) disponível",
+                                 body: "Você tem a \(AppInfo.version). Clique para baixar o DMG.",
+                                 link: release.htmlURL)
+        }
     }
 
     func rescheduleTimer() {

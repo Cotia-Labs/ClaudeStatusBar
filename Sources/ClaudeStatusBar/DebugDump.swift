@@ -20,4 +20,22 @@ enum DebugDump {
         }
         semaphore.wait()
     }
+
+    /// Sem UI: mostra a versão instalada, a última publicada e se há novidade.
+    static func checkUpdates() {
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            defer { semaphore.signal() }
+            do {
+                let release = try await UpdateChecker().latest()
+                let newer = isVersion(release.version, newerThan: AppInfo.version)
+                print("instalada: \(AppInfo.version)")
+                print("publicada: \(release.version) — \(release.htmlURL.absoluteString)")
+                print(newer ? "há atualização disponível" : "está atualizado")
+            } catch {
+                print("falha ao consultar releases: \(error.localizedDescription)")
+            }
+        }
+        semaphore.wait()
+    }
 }

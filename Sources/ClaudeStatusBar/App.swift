@@ -16,6 +16,12 @@ enum ClaudeStatusBarApp {
             return
         }
 
+        // `--check-updates` consulta a última release e imprime o veredito.
+        if CommandLine.arguments.contains("--check-updates") {
+            DebugDump.checkUpdates()
+            return
+        }
+
         let app = NSApplication.shared
         let delegate = AppDelegate()
         app.delegate = delegate
