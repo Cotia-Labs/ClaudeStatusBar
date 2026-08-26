@@ -4,11 +4,18 @@ import Foundation
 /// the source when running the bare executable (`swift run`), which has no
 /// Info.plist to read.
 enum AppInfo {
-    static let fallbackVersion = "1.0.6"
+    static let fallbackVersion = "1.0.7"
+
+    static let publisher = "Cotia Labs"
 
     static var displayName: String {
         bundleString("CFBundleDisplayName") ?? bundleString("CFBundleName") ?? "Claude Status"
     }
+
+    /// Assinatura mostrada no rodapé do painel.
+    static var signature: String { "por \(publisher)" }
+
+    static let publisherURL = URL(string: "https://github.com/Cotia-Labs/ClaudeStatusBar")!
 
     static var version: String {
         bundleString("CFBundleShortVersionString") ?? fallbackVersion

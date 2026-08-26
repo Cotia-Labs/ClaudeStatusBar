@@ -51,10 +51,20 @@ sed -e "s/__VERSION__/${VERSION}/" -e "s/__BUILD__/${BUILD}/" \
 # O ícone é referenciado pelo Info.plist como CFBundleIconFile = AppIcon.
 cp logo.icns "$APP/Contents/Resources/AppIcon.icns"
 
-# Assinatura ad-hoc: suficiente para notificações locais e "abrir no login".
-# Não é notarizada, então o Gatekeeper pede a primeira abertura pelo menu
-# contextual (ver README).
-codesign --force --deep --sign - "$APP"
+# Com SIGNING_IDENTITY (ex.: "Developer ID Application: Cotia Labs (TEAMID)")
+# a assinatura sai com hardened runtime e timestamp, pronta para notarização.
+# Sem ela, cai na assinatura ad-hoc: roda localmente, mas o Gatekeeper pede a
+# primeira abertura pelo menu contextual (ver README).
+IDENTITY="${SIGNING_IDENTITY:--}"
+if [ "$IDENTITY" = "-" ]; then
+    codesign --force --deep --sign - "$APP"
+    echo "Assinado ad-hoc (sem Developer ID)."
+else
+    codesign --force --deep --options runtime --timestamp \
+        --sign "$IDENTITY" "$APP"
+    codesign --verify --strict --deep "$APP"
+    echo "Assinado com: $IDENTITY"
+fi
 echo "Gerado: $APP (versão ${VERSION}, build ${BUILD})"
 
 if $make_dmg; then

@@ -5,6 +5,20 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.7] — 2026-08-25
+
+### Adicionado
+
+- Assinatura da **Cotia Labs** no app: rodapé do painel mostra
+  "Claude Status por Cotia Labs" ao lado da versão, e o menu de opções ganhou
+  um item que abre o repositório da Cotia Labs.
+- `build-app.sh` aceita `SIGNING_IDENTITY`: com um Developer ID a assinatura
+  sai com hardened runtime e timestamp; sem ele, continua ad-hoc como antes.
+- Pipeline de release importa um certificado Developer ID para uma keychain
+  temporária quando os secrets `SIGNING_CERTIFICATE_P12`,
+  `SIGNING_CERTIFICATE_PASSWORD` e `SIGNING_IDENTITY` existem. Sem secrets,
+  o build segue ad-hoc.
+
 ## [1.0.6] — 2026-08-25
 
 ### Corrigido

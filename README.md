@@ -4,7 +4,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.0.6** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.0.7** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalar
 
@@ -26,7 +26,7 @@ Requisitos: macOS 13+ e login ativo do Claude Code (`claude auth`).
 
 ```bash
 ./build-app.sh                    # dist/ClaudeStatusBar.app (arquitetura local)
-./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.6.dmg
+./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.7.dmg
 ./build-app.sh --install          # copia para /Applications
 open dist/ClaudeStatusBar.app
 
@@ -49,12 +49,28 @@ O GitHub Actions faz o build e sobe o artefato:
 
 ```bash
 # 1. atualize VERSION e CHANGELOG.md
-git commit -am "Release 1.0.6"
-git tag v1.0.6
+git commit -am "Release 1.0.7"
+git tag v1.0.7
 git push origin main --tags
 ```
 
 O DMG aparece na Release em poucos minutos, pronto para baixar e instalar.
+
+### Assinatura
+
+Por padrão o build assina ad-hoc, o que basta para rodar na própria máquina.
+Com uma conta paga de desenvolvedor, defina `SIGNING_IDENTITY` e a assinatura
+sai com hardened runtime e timestamp:
+
+```bash
+SIGNING_IDENTITY="Developer ID Application: Cotia Labs (TEAMID)" \
+  ./build-app.sh --universal --dmg
+```
+
+No CI, o workflow de release importa o certificado para uma keychain
+temporária quando estes secrets existem (sem eles, segue ad-hoc):
+`SIGNING_CERTIFICATE_P12` (o `.p12` em base64),
+`SIGNING_CERTIFICATE_PASSWORD` e `SIGNING_IDENTITY`.
 
 ## O que aparece
 

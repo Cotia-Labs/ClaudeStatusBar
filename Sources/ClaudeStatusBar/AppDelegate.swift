@@ -109,6 +109,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                                      keyEquivalent: "")
         versionItem.isEnabled = false
         menu.addItem(versionItem)
+
+        let publisherItem = NSMenuItem(title: AppInfo.signature,
+                                       action: #selector(openPublisher),
+                                       keyEquivalent: "")
+        publisherItem.target = self
+        menu.addItem(publisherItem)
         menu.addItem(.separator())
 
         let intervalItem = NSMenuItem(title: "Intervalo de atualização", action: nil, keyEquivalent: "")
@@ -198,6 +204,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             alert.messageText = "Não foi possível alterar a abertura no login"
             alert.runModal()
         }
+    }
+
+    @objc private func openPublisher() {
+        NSWorkspace.shared.open(AppInfo.publisherURL)
     }
 
     @objc private func openLicense() {

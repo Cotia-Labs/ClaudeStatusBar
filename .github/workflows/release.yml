@@ -34,8 +34,29 @@ jobs:
             exit 1
           fi
 
+      - name: Importar certificado Developer ID (opcional)
+        if: ${{ secrets.SIGNING_CERTIFICATE_P12 != '' }}
+        env:
+          CERT_P12: ${{ secrets.SIGNING_CERTIFICATE_P12 }}
+          CERT_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+        run: |
+          # Keychain temporária só para este runner; some junto com a VM.
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password="$(uuidgen)"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 3600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          echo "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$keychain" -P "$CERT_PASSWORD" \
+            -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain"
+          security list-keychains -d user -s "$keychain" login.keychain-db
+          rm -f "$RUNNER_TEMP/cert.p12"
+
       - name: Build
         run: ./build-app.sh --universal --dmg
+        env:
+          SIGNING_IDENTITY: ${{ secrets.SIGNING_IDENTITY }}
 
       - name: Verificar o bundle
         run: |

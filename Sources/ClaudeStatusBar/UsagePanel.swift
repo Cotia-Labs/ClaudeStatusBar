@@ -77,13 +77,17 @@ struct UsagePanel: View {
     private var statusFooter: some View {
         VStack(alignment: .leading, spacing: 6) {
             serviceStatus
-            HStack {
+            HStack(spacing: 4) {
                 Text(AppInfo.displayName)
+                Text(AppInfo.signature)
                 Spacer()
                 Text(AppInfo.versionLabel)
             }
             .font(.system(size: 10))
             .foregroundStyle(.tertiary)
+            .contentShape(Rectangle())
+            .onTapGesture { NSWorkspace.shared.open(AppInfo.publisherURL) }
+            .help("Abrir o repositório da \(AppInfo.publisher)")
         }
     }
 
