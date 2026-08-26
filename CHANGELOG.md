@@ -5,6 +5,8 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.11] — 2026-08-26
+
 ### Corrigido
 
 - **Pedido de autorização do keychain a cada refresh.** O token do Claude Code
