@@ -110,10 +110,13 @@ jobs:
           files: dist/*.dmg
           generate_release_notes: true
           body: |
-            Baixe o `.dmg`, arraste **ClaudeStatusBar.app** para Applications.
+            Baixe o `.dmg` e dê **dois cliques em `Instalar.command`** — ele
+            copia o app para Applications e libera o Gatekeeper.
 
-            O app é assinado só ad-hoc (sem conta de desenvolvedor), então na
-            primeira abertura use **botão direito → Abrir**, ou rode:
+            O app é assinado só ad-hoc (sem conta de desenvolvedor), então
+            arrastar para Applications deixa a quarentena do macOS no bundle e
+            o sistema acusa "aplicativo danificado". Se preferir arrastar,
+            rode depois:
 
             ```bash
             xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app

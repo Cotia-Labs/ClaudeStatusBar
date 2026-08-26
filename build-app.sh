@@ -125,6 +125,74 @@ if $make_dmg; then
     cp -R "$APP" "$staging/"
     ln -s /Applications "$staging/Applications"
 
+    # Arrastar para Applications preserva o atributo com.apple.quarantine, e num
+    # app só ad-hoc isso vira "aplicativo danificado". O instalador copia e
+    # limpa a quarentena, que é o caminho que funciona sem Developer ID.
+    cat > "$staging/Instalar.command" <<'INSTALLER'
+#!/bin/bash
+set -euo pipefail
+cd "$(dirname "$0")"
+
+APP="ClaudeStatusBar.app"
+DEST="/Applications/ClaudeStatusBar.app"
+
+if [ ! -d "$APP" ]; then
+    echo "ClaudeStatusBar.app não encontrado ao lado deste instalador." >&2
+    read -r -p "Pressione Enter para fechar." _
+    exit 1
+fi
+
+echo "Instalando o Claude Status em /Applications..."
+
+# Um app em execução não pode ser sobrescrito sem sair antes.
+if pgrep -x ClaudeStatusBar >/dev/null 2>&1; then
+    echo "Encerrando a versão em execução..."
+    osascript -e 'quit app "ClaudeStatusBar"' 2>/dev/null || pkill -x ClaudeStatusBar || true
+    sleep 2
+fi
+
+if [ -d "$DEST" ] && ! rm -rf "$DEST" 2>/dev/null; then
+    echo "Precisa da sua senha para substituir a versão instalada."
+    sudo rm -rf "$DEST"
+    sudo cp -R "$APP" /Applications/
+    sudo xattr -dr com.apple.quarantine "$DEST" || true
+    sudo chown -R "$(id -un)":staff "$DEST" || true
+else
+    cp -R "$APP" /Applications/ 2>/dev/null || {
+        echo "Precisa da sua senha para escrever em /Applications."
+        sudo cp -R "$APP" /Applications/
+        sudo chown -R "$(id -un)":staff "$DEST" || true
+    }
+fi
+
+# Sem isso o Gatekeeper barra o app ad-hoc na primeira abertura.
+xattr -dr com.apple.quarantine "$DEST" 2>/dev/null || sudo xattr -dr com.apple.quarantine "$DEST" || true
+
+echo "Instalado. Abrindo..."
+open "$DEST"
+echo
+echo "Pronto — o ícone aparece na barra de menus, no topo da tela."
+read -r -p "Pressione Enter para fechar." _
+INSTALLER
+    chmod +x "$staging/Instalar.command"
+
+    cat > "$staging/LEIA-ME.txt" <<'READ'
+Claude Status — instalação
+
+Modo recomendado:
+  Dê dois cliques em "Instalar.command".
+  Ele copia o app para /Applications e libera o Gatekeeper.
+  Se o macOS bloquear o script, clique com o botão direito → Abrir.
+
+Modo manual:
+  Arraste ClaudeStatusBar.app para a pasta Applications e depois rode
+  no Terminal:
+      xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
+
+O app não tem ícone no Dock: ele vive na barra de menus, no topo da tela.
+Requer macOS 13+ e Claude Code autenticado.
+READ
+
     # Ícone do próprio volume montado.
     cp logo.icns "$staging/.VolumeIcon.icns"
     SetFile -a C "$staging" 2>/dev/null || true
@@ -132,6 +200,12 @@ if $make_dmg; then
     hdiutil create -volname "Claude Status ${VERSION}" \
         -srcfolder "$staging" -ov -format UDZO "$DMG" >/dev/null
     rm -rf "$staging"
+
+    # O .command também precisa de assinatura válida quando há Developer ID;
+    # ad-hoc não assina script, então só assinamos o DMG quando há identidade.
+    if [ "$IDENTITY" != "-" ]; then
+        codesign --force --timestamp --sign "$IDENTITY" "$DMG"
+    fi
     echo "Gerado: $DMG"
 fi
 

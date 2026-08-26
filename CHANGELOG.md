@@ -5,6 +5,22 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.10] — 2026-08-26
+
+### Adicionado
+
+- **Instalador no DMG.** O disco agora traz `Instalar.command` e um
+  `LEIA-ME.txt`. O script encerra a versão em execução, copia o app para
+  `/Applications` (pedindo senha só quando precisa), remove a quarentena e
+  abre o app.
+
+### Corrigido
+
+- **Falha ao instalar arrastando.** Como o app é assinado apenas ad-hoc,
+  arrastar do DMG para Applications preservava o `com.apple.quarantine` e o
+  macOS acusava "aplicativo danificado". O instalador resolve isso; o caminho
+  manual com `xattr -dr` segue documentado.
+
 ## [1.0.9] — 2026-08-25
 
 ### Adicionado
