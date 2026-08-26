@@ -4,7 +4,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.0.5** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.0.6** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalar
 
@@ -26,7 +26,7 @@ Requisitos: macOS 13+ e login ativo do Claude Code (`claude auth`).
 
 ```bash
 ./build-app.sh                    # dist/ClaudeStatusBar.app (arquitetura local)
-./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.5.dmg
+./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.6.dmg
 ./build-app.sh --install          # copia para /Applications
 open dist/ClaudeStatusBar.app
 
@@ -49,8 +49,8 @@ O GitHub Actions faz o build e sobe o artefato:
 
 ```bash
 # 1. atualize VERSION e CHANGELOG.md
-git commit -am "Release 1.0.5"
-git tag v1.0.5
+git commit -am "Release 1.0.6"
+git tag v1.0.6
 git push origin main --tags
 ```
 
@@ -58,7 +58,7 @@ O DMG aparece na Release em poucos minutos, pronto para baixar e instalar.
 
 ## O que aparece
 
-Na barra: um **anel que enche** com o percentual da janela mais apertada.
+Na barra: um **anel que enche** com o percentual da **sessão atual** (janela de 5 horas).
 Verde → amarelo → laranja → vermelho, com pulsação lenta acima de 95%.
 O anel faz easing até o novo valor a cada atualização, nunca salta.
 Opcionalmente mostra a porcentagem em texto ao lado.

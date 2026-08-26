@@ -28,10 +28,10 @@ final class UsageStore: ObservableObject {
     private var notifiedThresholds: Set<Int> = []
     private var lastWindowReset: Date?
 
-    /// Utilization of the busiest window, 0...1. Drives the menu bar gauge.
-    var headlineFraction: Double { usage?.headline?.fraction ?? 0 }
+    /// Utilization of the current session window, 0...1. Drives the gauge.
+    var sessionFraction: Double { usage?.session?.fraction ?? 0 }
 
-    var level: UsageLevel { UsageLevel(fraction: headlineFraction) }
+    var level: UsageLevel { UsageLevel(fraction: sessionFraction) }
 
     func start() {
         notifier.requestAuthorizationIfNeeded()
@@ -100,7 +100,7 @@ final class UsageStore: ObservableObject {
 
     /// Notifies once per threshold crossing, rearming when the window resets.
     private func handleThresholds(_ snapshot: UsageSnapshot) {
-        guard let window = snapshot.headline else { return }
+        guard let window = snapshot.mostConstrained else { return }
         if window.resetsAt != lastWindowReset {
             lastWindowReset = window.resetsAt
             notifiedThresholds.removeAll()

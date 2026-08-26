@@ -27,14 +27,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
 
-        popover = NSPopover()
-        popover.behavior = .transient
-        popover.delegate = self
-        popover.contentViewController = NSHostingController(
+        let controller = NSHostingController(
             rootView: UsagePanel(store: store,
                                  onRefresh: { [weak self] in self?.store.refresh(force: true) },
                                  onOpenMenu: { [weak self] view in self?.showMenu(anchoredTo: view) })
         )
+        // Let the controller report the SwiftUI size, and seed the popover with
+        // it: left at the default 320x320, AppKit positions the panel for that
+        // size and it ends up floating well below the menu bar.
+        controller.sizingOptions = [.preferredContentSize]
+
+        popover = NSPopover()
+        popover.behavior = .transient
+        popover.delegate = self
+        popover.contentViewController = controller
+        popover.contentSize = controller.view.fittingSize
 
         observeStore()
         store.start()
@@ -49,7 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 
     private func renderGauge() {
-        gauge.update(fraction: store.headlineFraction,
+        gauge.update(fraction: store.sessionFraction,
                      level: store.level,
                      stale: store.usageError != nil)
         statusItem.button?.toolTip = tooltip
@@ -57,8 +64,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     private var tooltip: String {
         if let error = store.usageError { return error }
-        guard let window = store.usage?.headline else { return "Consultando uso do Claude…" }
-        let percent = "\(Int(window.utilization.rounded()))% usado"
+        guard let window = store.usage?.session else { return "Consultando uso do Claude…" }
+        let percent = "Sessão atual: \(Int(window.utilization.rounded()))% usado"
         guard let resetsAt = window.resetsAt else { return percent }
         return "\(percent) · reinicia em \(Formatters.countdown(to: resetsAt))"
     }
@@ -82,6 +89,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             popover.performClose(nil)
         } else {
             store.refresh()
+            // The panel grows and shrinks (error box, extra windows), so the
+            // size has to be current before AppKit places it.
+            if let controller = popover.contentViewController {
+                controller.view.layoutSubtreeIfNeeded()
+                popover.contentSize = controller.view.fittingSize
+            }
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
             NSApp.activate(ignoringOtherApps: true)

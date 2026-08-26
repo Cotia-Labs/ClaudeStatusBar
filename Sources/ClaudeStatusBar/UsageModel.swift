@@ -29,8 +29,14 @@ struct UsageSnapshot: Decodable, Equatable {
         case sevenDaySonnet = "seven_day_sonnet"
     }
 
-    /// The window that drives the menu bar icon: whichever is closest to the cap.
-    var headline: UsageWindow? {
+    /// The window that drives the menu bar gauge: the current session, since
+    /// that is the limit that bites during a work stretch. Falls back to the
+    /// weekly window on plans that report no session window.
+    var session: UsageWindow? { fiveHour ?? sevenDay }
+
+    /// Whichever window sits closest to its cap. Used for threshold warnings,
+    /// so a weekly limit filling up is not missed while the session is idle.
+    var mostConstrained: UsageWindow? {
         [fiveHour, sevenDay, sevenDayOpus, sevenDaySonnet]
             .compactMap { $0 }
             .max { $0.utilization < $1.utilization }

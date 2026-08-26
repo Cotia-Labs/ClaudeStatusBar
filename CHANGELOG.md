@@ -5,6 +5,22 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.6] — 2026-08-25
+
+### Corrigido
+
+- Popover continuava abrindo ~115 pt abaixo do menu bar. A causa era o
+  `contentSize` do `NSPopover`: sem valor explícito ele vale 320x320, e o
+  AppKit posiciona o painel para esse tamanho antes do SwiftUI encolher a
+  view. Agora o `NSHostingController` usa `sizingOptions = .preferredContentSize`
+  e o `contentSize` é atualizado a partir do `fittingSize` antes de cada
+  abertura. Medido em runtime: o topo do painel encosta no menu bar.
+- Anel da barra de menus mostrava a janela mais cheia, que costuma ser a
+  semanal. Passa a mostrar a **sessão atual** (janela de 5 horas), com
+  fallback para a semanal em planos que não reportam sessão. Os avisos de
+  80% e 95% seguem olhando a janela mais próxima do limite, qualquer que seja.
+- Tooltip da barra agora identifica a janela: "Sessão atual: 5% usado".
+
 ## [1.0.5] — 2026-08-25
 
 ### Adicionado
@@ -83,7 +99,8 @@ Primeira versão.
   e painel que mantém os últimos números bons quando um refresh falha.
 - O app é assinado apenas ad-hoc; não é notarizado.
 
-[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.5...HEAD
+[Não lançado]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/Cotia-Labs/ClaudeStatusBar/compare/v1.0.2...v1.0.3
