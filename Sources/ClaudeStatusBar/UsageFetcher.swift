@@ -48,6 +48,17 @@ actor UsageFetcher {
     }()
 
     func fetch() async throws -> UsageSnapshot {
+        do {
+            return try await attempt()
+        } catch FetchError.unauthorized {
+            // O token em cache pode ter sido rotacionado pelo CLI: relê a fonte
+            // uma vez antes de reportar o erro ao usuário.
+            guard Credentials.invalidate() else { throw FetchError.unauthorized }
+            return try await attempt()
+        }
+    }
+
+    private func attempt() async throws -> UsageSnapshot {
         var request = URLRequest(url: Self.endpoint)
         request.setValue("Bearer \(try Credentials.accessToken())", forHTTPHeaderField: "Authorization")
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")

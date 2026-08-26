@@ -5,6 +5,14 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido
+
+- **Pedido de autorização do keychain a cada refresh.** O token do Claude Code
+  era relido do keychain em todo ciclo do timer (5 min por padrão); como o app
+  é assinado ad-hoc, a ACL "Sempre Permitir" não gruda e o macOS voltava a
+  perguntar de tempos em tempos. Agora o token fica em cache em memória e só é
+  relido quando a API responde 401.
+
 ## [1.0.10] — 2026-08-26
 
 ### Adicionado

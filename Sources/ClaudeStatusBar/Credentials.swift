@@ -8,6 +8,26 @@ import Security
 enum Credentials {
     private static let keychainService = "Claude Code-credentials"
 
+    /// O token fica em memória entre os refreshes. Sem isso cada ciclo do timer
+    /// bate no keychain, e como o app é assinado ad-hoc a ACL não cola: o
+    /// macOS volta a pedir autorização de tempos em tempos. Uma leitura por
+    /// execução (ou por 401) reduz o prompt ao mínimo inevitável.
+    private static let cacheLock = NSLock()
+    private static var cachedToken: String?
+
+    /// Chamado quando a API recusa o token. Retorna `true` se havia mesmo um
+    /// token em cache — só nesse caso vale reler a fonte, porque um token
+    /// recém-lido que já veio recusado não muda numa segunda tentativa (e a
+    /// releitura custaria outro prompt do keychain).
+    @discardableResult
+    static func invalidate() -> Bool {
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        let had = cachedToken != nil
+        cachedToken = nil
+        return had
+    }
+
     enum LookupError: LocalizedError {
         case notFound
 
@@ -17,8 +37,14 @@ enum Credentials {
     }
 
     static func accessToken() throws -> String {
-        if let token = tokenFromFile() ?? tokenFromKeychain() { return token }
-        throw LookupError.notFound
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        if let token = cachedToken { return token }
+        guard let token = tokenFromFile() ?? tokenFromKeychain() else {
+            throw LookupError.notFound
+        }
+        cachedToken = token
+        return token
     }
 
     private static func tokenFromFile() -> String? {
