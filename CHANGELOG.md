@@ -5,6 +5,16 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.12] — 2026-10-21
+
+### Adicionado
+
+- **Instalação em uma linha.** `scripts/install.sh` baixa o DMG da última
+  Release, encerra a versão em execução, copia para `/Applications`, remove a
+  quarentena e abre o app. `VERSION=vX.Y.Z` fixa uma versão específica.
+- README com instalação rápida, passos manuais equivalentes e explicação da
+  quarentena do Gatekeeper.
+
 ## [1.0.11] — 2026-08-26
 
 ### Corrigido

@@ -6,7 +6,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.0.11** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.0.12** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalar
 
@@ -63,7 +63,7 @@ xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
 
 ```bash
 ./build-app.sh                    # dist/ClaudeStatusBar.app (arquitetura local)
-./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.11.dmg
+./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.12.dmg
 ./build-app.sh --install          # copia para /Applications
 open dist/ClaudeStatusBar.app
 
@@ -86,9 +86,10 @@ O GitHub Actions faz o build e sobe o artefato:
   Release do GitHub. O job falha se `VERSION` não bater com a tag.
 
 ```bash
-# 1. atualize VERSION e CHANGELOG.md
-git commit -am "Release 1.0.11"
-git tag v1.0.11
+# 1. atualize VERSION e CHANGELOG.md — o tag precisa apontar para o commit
+#    que já contém o VERSION novo, senão o workflow falha
+git commit -am "Release 1.0.12"
+git tag v1.0.12
 git push origin main --tags
 ```
 
