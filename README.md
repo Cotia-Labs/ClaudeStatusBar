@@ -6,64 +6,66 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.0.12** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.0.13** (ver [CHANGELOG.md](CHANGELOG.md)).
 
-## Instalar
+## Instalação
 
-> **Requisitos:** macOS 13+ e login ativo do Claude Code (`claude auth`).
+**Requisitos:** macOS 13 (Ventura) ou posterior, Apple Silicon ou Intel, e
+login ativo do Claude Code (`claude auth`).
 
-### Instalação rápida (Terminal)
+### Opção 1: baixar o app
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/Cotia-Labs/ClaudeStatusBar/main/scripts/install.sh | bash
-```
+1. Abra a página de [Releases][releases] e baixe o arquivo
+   `ClaudeStatusBar-<versão>-macos.zip`.
+2. Dê dois cliques no `.zip` para descompactar. O macOS cria o
+   `ClaudeStatusBar.app`.
+3. Arraste o `ClaudeStatusBar.app` para a pasta **Aplicativos**
+   (`/Applications`).
+4. Libere o app no Gatekeeper (veja abaixo). Isso só é preciso na primeira vez.
+5. Abra o ClaudeStatusBar pela pasta Aplicativos ou pelo Spotlight
+   (⌘ Espaço → "ClaudeStatusBar"). O ícone aparece na barra de menus, no topo
+   da tela — o app não fica no Dock.
 
-O [script](scripts/install.sh) baixa o `.dmg` da última Release, encerra a
-versão em execução (se houver), copia o app para `/Applications`, remove a
-quarentena e abre. Rodar de novo atualiza. Para fixar uma versão, use
-`… | VERSION=v1.0.11 bash`.
+#### Liberar o app na primeira abertura
 
-<details>
-<summary>Prefere não executar script remoto? Os mesmos passos, à mão:</summary>
+O app é assinado só ad-hoc (sem notarização da Apple), então na primeira
+abertura o macOS diz que ele está "danificado" ou que não pode verificar o
+desenvolvedor. Escolha **uma** das formas abaixo:
+
+- **Pelo Terminal** (mais rápido):
+
+  ```bash
+  xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
+  ```
+
+- **Pelos Ajustes do Sistema**: tente abrir o app uma vez e feche o aviso.
+  Depois vá em **Ajustes do Sistema → Privacidade e Segurança**, role até o
+  fim e clique em **Abrir Mesmo Assim** ao lado de "ClaudeStatusBar".
+
+### Opção 2: instalar pelo Terminal
+
+Baixa a versão mais recente, instala em `/Applications` e já libera o app:
 
 ```bash
 URL=$(curl -fsSL https://api.github.com/repos/Cotia-Labs/ClaudeStatusBar/releases/latest \
-  | grep -o '"browser_download_url": *"[^"]*\.dmg"' | cut -d '"' -f4)
-curl -fL "$URL" -o /tmp/ClaudeStatusBar.dmg
-MNT=$(hdiutil attach -nobrowse -readonly /tmp/ClaudeStatusBar.dmg | awk -F '\t' '/\/Volumes\// {print $NF}')
-rm -rf /Applications/ClaudeStatusBar.app
-ditto "$MNT/ClaudeStatusBar.app" /Applications/ClaudeStatusBar.app
+  | grep -o '"browser_download_url": *"[^"]*\.zip"' | cut -d '"' -f4)
+curl -fL "$URL" -o /tmp/ClaudeStatusBar.zip
+ditto -x -k /tmp/ClaudeStatusBar.zip /Applications
 xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
-hdiutil detach -quiet "$MNT" && rm /tmp/ClaudeStatusBar.dmg
+rm /tmp/ClaudeStatusBar.zip
 open /Applications/ClaudeStatusBar.app
 ```
 
-</details>
+Para atualizar manualmente, saia do app pelo menu e rode o mesmo bloco.
 
-### Pelo DMG
-
-Baixe o `.dmg` da [página de Releases][releases] e dê dois cliques em
-**Instalar.command** — ele faz o mesmo que o script acima. (Se o macOS
-bloquear o script, botão direito → Abrir.)
-
-### Por que remover a quarentena?
-
-O app é assinado só ad-hoc (sem conta paga de desenvolvedor), então
-arrastar para Applications deixa a quarentena no bundle e o Gatekeeper
-barra a abertura ("app danificado"). Quem preferir arrastar precisa rodar
-depois:
-
-```bash
-xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
-```
-
-[releases]: ../../releases/latest
+[releases]: https://github.com/Cotia-Labs/ClaudeStatusBar/releases/latest
 
 ## Build local
 
 ```bash
 ./build-app.sh                    # dist/ClaudeStatusBar.app (arquitetura local)
-./build-app.sh --universal --dmg  # binário universal + dist/ClaudeStatusBar-1.0.12.dmg
+./build-app.sh --universal --zip  # binário universal + dist/ClaudeStatusBar-<versão>-macos.zip
+./build-app.sh --dmg              # opcional: DMG com Instalar.command
 ./build-app.sh --install          # copia para /Applications
 open dist/ClaudeStatusBar.app
 
@@ -82,18 +84,19 @@ O GitHub Actions faz o build e sobe o artefato:
 - **`.github/workflows/ci.yml`** — a cada push em `main` e em cada PR: build,
   empacotamento, verificação de assinatura e smoke test do `--dump`.
 - **`.github/workflows/release.yml`** — ao empurrar uma tag `v*` (ou manualmente
-  em Actions → Release): build universal, DMG, upload como artefato e anexo à
-  Release do GitHub. O job falha se `VERSION` não bater com a tag.
+  em Actions → Release): build universal, `.zip` + `.sha256`, upload como
+  artefato e anexo à Release do GitHub. O job falha se `VERSION` não bater
+  com a tag.
 
 ```bash
 # 1. atualize VERSION e CHANGELOG.md — o tag precisa apontar para o commit
 #    que já contém o VERSION novo, senão o workflow falha
-git commit -am "Release 1.0.12"
-git tag v1.0.12
+git commit -am "Release 1.0.13"
+git tag v1.0.13
 git push origin main --tags
 ```
 
-O DMG aparece na Release em poucos minutos, pronto para baixar e instalar.
+O `.zip` aparece na Release em poucos minutos, pronto para baixar e instalar.
 
 ### Assinatura
 
@@ -103,7 +106,7 @@ sai com hardened runtime e timestamp:
 
 ```bash
 SIGNING_IDENTITY="Developer ID Application: Cotia Labs (TEAMID)" \
-  ./build-app.sh --universal --dmg
+  ./build-app.sh --universal --zip
 ```
 
 No CI, o workflow de release importa o certificado para uma keychain
@@ -155,7 +158,7 @@ e o link do status page.
 
 Com o Sparkle configurado (ver abaixo), o app checa o `appcast.xml` do
 repositório ao abrir e uma vez por dia, mostra a janela do Sparkle quando há
-versão nova, e **baixa e instala sozinho** — sem arrastar DMG. O painel também
+versão nova, e **baixa e instala sozinho** — sem baixar zip. O painel também
 mostra a faixa "Versão X disponível". Para desligar a checagem automática, use
 "Verificar atualizações automaticamente" no menu.
 
@@ -180,7 +183,7 @@ Guarde as duas nos secrets do repositório:
 | `SPARKLE_PUBLIC_ED_KEY` | a chave pública impressa pelo `generate_keys` |
 | `SPARKLE_PRIVATE_ED_KEY` | a chave privada (`generate_keys -x -` para exportar) |
 
-A partir daí, cada tag `v*` gera o DMG, assina com a chave privada, atualiza
+A partir daí, cada tag `v*` gera o `.zip`, assina com a chave privada, atualiza
 `appcast.xml` e comita o arquivo em `main` — que é de onde o app lê o feed
 (`raw.githubusercontent.com/Cotia-Labs/ClaudeStatusBar/main/appcast.xml`).
 

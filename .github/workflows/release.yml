@@ -1,8 +1,8 @@
 name: Release
 
 # Dispara ao empurrar uma tag v* (ex.: v1.0.0) ou manualmente pela aba Actions.
-# Em ambos os casos o DMG universal vira artefato baixável; com tag, ele também
-# é anexado à Release do GitHub.
+# Em ambos os casos o .zip universal (+ .sha256) vira artefato baixável; com
+# tag, ele também é anexado à Release do GitHub.
 on:
   push:
     tags: ["v*"]
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    name: Build universal .app + DMG
+    name: Build universal .app + zip
     runs-on: macos-15
 
     steps:
@@ -58,7 +58,7 @@ jobs:
           rm -f "$RUNNER_TEMP/cert.p12"
 
       - name: Build
-        run: ./build-app.sh --universal --dmg
+        run: ./build-app.sh --universal --zip
         env:
           SIGNING_IDENTITY: ${{ secrets.SIGNING_IDENTITY }}
           SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
@@ -82,7 +82,7 @@ jobs:
             echo "Sem SPARKLE_PRIVATE_ED_KEY; pulando o appcast."
             exit 0
           fi
-          ./scripts/make-appcast.sh dist/ClaudeStatusBar-*.dmg
+          ./scripts/make-appcast.sh dist/ClaudeStatusBar-*-macos.zip
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add appcast.xml
@@ -98,8 +98,10 @@ jobs:
       - name: Subir artefato
         uses: actions/upload-artifact@v4
         with:
-          name: ClaudeStatusBar-dmg
-          path: dist/*.dmg
+          name: ClaudeStatusBar-zip
+          path: |
+            dist/*.zip
+            dist/*.zip.sha256
           if-no-files-found: error
           retention-days: 30
 
@@ -107,19 +109,31 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.dmg
+          files: |
+            dist/*.zip
+            dist/*.zip.sha256
           generate_release_notes: true
           body: |
-            Baixe o `.dmg` e dê **dois cliques em `Instalar.command`** — ele
-            copia o app para Applications e libera o Gatekeeper.
+            **Instalar pelo Terminal** (baixa, instala em `/Applications` e libera o app):
 
-            O app é assinado só ad-hoc (sem conta de desenvolvedor), então
-            arrastar para Applications deixa a quarentena do macOS no bundle e
-            o sistema acusa "aplicativo danificado". Se preferir arrastar,
-            rode depois:
+            ```bash
+            URL=$(curl -fsSL https://api.github.com/repos/Cotia-Labs/ClaudeStatusBar/releases/latest \
+              | grep -o '"browser_download_url": *"[^"]*\.zip"' | cut -d '"' -f4)
+            curl -fL "$URL" -o /tmp/ClaudeStatusBar.zip
+            ditto -x -k /tmp/ClaudeStatusBar.zip /Applications
+            xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
+            rm /tmp/ClaudeStatusBar.zip
+            open /Applications/ClaudeStatusBar.app
+            ```
+
+            **Ou manualmente:** baixe o `.zip`, dê dois cliques para descompactar,
+            arraste o `ClaudeStatusBar.app` para Aplicativos e rode:
 
             ```bash
             xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
             ```
+
+            O app é assinado só ad-hoc (sem notarização), então sem esse passo o
+            macOS acusa "aplicativo danificado".
 
             Requer macOS 13+ e login ativo do Claude Code (`claude auth`).

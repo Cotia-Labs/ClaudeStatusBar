@@ -1,18 +1,19 @@
 #!/bin/bash
 # Gera/atualiza o appcast.xml que o Sparkle consulta.
 #
-#   SPARKLE_PRIVATE_ED_KEY="…" ./scripts/make-appcast.sh dist/ClaudeStatusBar-1.0.9.dmg
+#   SPARKLE_PRIVATE_ED_KEY="…" ./scripts/make-appcast.sh dist/ClaudeStatusBar-1.0.13-macos.zip
 #
 # A chave privada EdDSA vem do `generate_keys` do Sparkle (ver README). Ela
-# assina o DMG; o app valida com a pública gravada no Info.plist. Sem o par de
-# chaves não há auto-update — e é por isso que ele é opcional no build.
+# assina o arquivo de update (.zip ou .dmg); o app valida com a pública gravada
+# no Info.plist. Sem o par de chaves não há auto-update — e é por isso que ele
+# é opcional no build.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-DMG="${1:-}"
-if [ ! -f "$DMG" ]; then
-    echo "uso: $0 <caminho do .dmg>" >&2
+ARCHIVE="${1:-}"
+if [ ! -f "$ARCHIVE" ]; then
+    echo "uso: $0 <caminho do .zip ou .dmg>" >&2
     exit 2
 fi
 if [ -z "${SPARKLE_PRIVATE_ED_KEY:-}" ]; then
@@ -36,10 +37,10 @@ printf '%s' "$SPARKLE_PRIVATE_ED_KEY" > "$keyfile"
 chmod 600 "$keyfile"
 
 # generate_appcast varre um diretório inteiro e preserva as entradas antigas do
-# appcast que já estiver lá, então basta jogar o DMG novo num staging limpo.
+# appcast que já estiver lá, então basta jogar o arquivo novo num staging limpo.
 staging="$tools/updates"
 mkdir -p "$staging"
-cp "$DMG" "$staging/"
+cp "$ARCHIVE" "$staging/"
 [ -f appcast.xml ] && cp appcast.xml "$staging/appcast.xml"
 
 "$tools/bin/generate_appcast" \

@@ -1,8 +1,8 @@
 import AppKit
 import Sparkle
 
-/// Sparkle front-end: checks the appcast, downloads the DMG and installs it in
-/// place, replacing the old "download the DMG and drag it yourself" flow.
+/// Sparkle front-end: checks the appcast, downloads the update and installs it in
+/// place, replacing the old "download the archive and drag it yourself" flow.
 ///
 /// Everything is optional at runtime. Sparkle needs a real app bundle carrying
 /// `SUFeedURL` and `SUPublicEDKey`, so `swift run` and the ad-hoc builds made

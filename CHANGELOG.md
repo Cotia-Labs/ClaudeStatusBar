@@ -5,6 +5,21 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.0.13] — 2026-10-21
+
+### Alterado
+
+- **Distribuição em `.zip`.** A Release passa a publicar
+  `ClaudeStatusBar-<versão>-macos.zip` (+ `.sha256`) no lugar do DMG, e a
+  instalação pelo Terminal vira um bloco curto com `ditto -x -k`, sem montar
+  imagem de disco. O `build-app.sh` ganhou a flag `--zip`; `--dmg` continua
+  disponível para builds locais.
+- O appcast do Sparkle aponta para o `.zip`.
+
+### Removido
+
+- `scripts/install.sh`: substituído pelo bloco de instalação do README.
+
 ## [1.0.12] — 2026-10-21
 
 ### Adicionado

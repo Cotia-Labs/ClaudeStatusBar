@@ -3,6 +3,8 @@
 #
 #   ./build-app.sh              build para a arquitetura local
 #   ./build-app.sh --universal  binário universal (arm64 + x86_64)
+#   ./build-app.sh --zip        gera dist/ClaudeStatusBar-<versão>-macos.zip (+ .sha256),
+#                               o formato publicado na Release
 #   ./build-app.sh --dmg        gera também dist/ClaudeStatusBar-<versão>.dmg
 #   ./build-app.sh --install    copia o .app para /Applications
 #
@@ -20,13 +22,16 @@ VERSION="$(tr -d '[:space:]' < VERSION)"
 BUILD="${GITHUB_RUN_NUMBER:-1}"
 APP="dist/ClaudeStatusBar.app"
 DMG="dist/ClaudeStatusBar-${VERSION}.dmg"
+ZIP="dist/ClaudeStatusBar-${VERSION}-macos.zip"
 
 universal=false
+make_zip=false
 make_dmg=false
 install=false
 for arg in "$@"; do
     case "$arg" in
         --universal) universal=true ;;
+        --zip) make_zip=true ;;
         --dmg) make_dmg=true ;;
         --install) install=true ;;
         *) echo "Flag desconhecida: $arg" >&2; exit 2 ;;
@@ -118,6 +123,15 @@ else
     echo "Assinado com: $IDENTITY"
 fi
 echo "Gerado: $APP (versão ${VERSION}, build ${BUILD})"
+
+if $make_zip; then
+    rm -f "$ZIP" "$ZIP.sha256"
+    # `ditto` preserva symlinks e atributos estendidos: o `zip` comum achata os
+    # symlinks do Sparkle.framework e invalida a assinatura do bundle.
+    ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
+    (cd dist && shasum -a 256 "$(basename "$ZIP")" > "$(basename "$ZIP").sha256")
+    echo "Gerado: $ZIP"
+fi
 
 if $make_dmg; then
     rm -f "$DMG"

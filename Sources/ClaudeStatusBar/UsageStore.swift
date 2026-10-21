@@ -18,7 +18,7 @@ final class UsageStore: ObservableObject {
     @Published private(set) var availableUpdate: AvailableUpdate?
 
     /// `url` só existe no caminho legado: com Sparkle a instalação é in-place,
-    /// não há DMG para abrir no navegador.
+    /// não há página de download para abrir no navegador.
     struct AvailableUpdate: Equatable {
         let version: String
         let url: URL?
@@ -115,7 +115,7 @@ final class UsageStore: ObservableObject {
             guard manual || Preferences.lastNotifiedVersion != release.version else { return }
             Preferences.lastNotifiedVersion = release.version
             self.notifier.notify(title: L("New version %@ available", release.version),
-                                 body: L("You have %@. Click to download the DMG.", AppInfo.version),
+                                 body: L("You have %@. Click to download it.", AppInfo.version),
                                  link: release.htmlURL)
         }
     }
