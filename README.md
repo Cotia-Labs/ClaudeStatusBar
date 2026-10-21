@@ -10,19 +10,52 @@ Versão atual: **1.0.11** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalar
 
+> **Requisitos:** macOS 13+ e login ativo do Claude Code (`claude auth`).
+
+### Instalação rápida (Terminal)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Cotia-Labs/ClaudeStatusBar/main/scripts/install.sh | bash
+```
+
+O [script](scripts/install.sh) baixa o `.dmg` da última Release, encerra a
+versão em execução (se houver), copia o app para `/Applications`, remove a
+quarentena e abre. Rodar de novo atualiza. Para fixar uma versão, use
+`… | VERSION=v1.0.11 bash`.
+
+<details>
+<summary>Prefere não executar script remoto? Os mesmos passos, à mão:</summary>
+
+```bash
+URL=$(curl -fsSL https://api.github.com/repos/Cotia-Labs/ClaudeStatusBar/releases/latest \
+  | grep -o '"browser_download_url": *"[^"]*\.dmg"' | cut -d '"' -f4)
+curl -fL "$URL" -o /tmp/ClaudeStatusBar.dmg
+MNT=$(hdiutil attach -nobrowse -readonly /tmp/ClaudeStatusBar.dmg | awk -F '\t' '/\/Volumes\// {print $NF}')
+rm -rf /Applications/ClaudeStatusBar.app
+ditto "$MNT/ClaudeStatusBar.app" /Applications/ClaudeStatusBar.app
+xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
+hdiutil detach -quiet "$MNT" && rm /tmp/ClaudeStatusBar.dmg
+open /Applications/ClaudeStatusBar.app
+```
+
+</details>
+
+### Pelo DMG
+
 Baixe o `.dmg` da [página de Releases][releases] e dê dois cliques em
-**Instalar.command** — ele copia o app para Applications, tira a quarentena
-e já abre. (Se o macOS bloquear o script, botão direito → Abrir.)
+**Instalar.command** — ele faz o mesmo que o script acima. (Se o macOS
+bloquear o script, botão direito → Abrir.)
+
+### Por que remover a quarentena?
 
 O app é assinado só ad-hoc (sem conta paga de desenvolvedor), então
 arrastar para Applications deixa a quarentena no bundle e o Gatekeeper
-barra a abertura. Quem preferir arrastar precisa rodar depois:
+barra a abertura ("app danificado"). Quem preferir arrastar precisa rodar
+depois:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/ClaudeStatusBar.app
 ```
-
-Requisitos: macOS 13+ e login ativo do Claude Code (`claude auth`).
 
 [releases]: ../../releases/latest
 
