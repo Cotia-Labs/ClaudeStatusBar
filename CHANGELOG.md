@@ -5,6 +5,8 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.1.0] — 2026-10-25
+
 ### Adicionado
 
 - **Login próprio ("Entrar com Claude…").** O app faz o login OAuth (PKCE,

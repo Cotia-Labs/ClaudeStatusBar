@@ -6,7 +6,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.0.13** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.1.0** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalação
 
@@ -92,8 +92,8 @@ O GitHub Actions faz o build e sobe o artefato:
 ```bash
 # 1. atualize VERSION e CHANGELOG.md — o tag precisa apontar para o commit
 #    que já contém o VERSION novo, senão o workflow falha
-git commit -am "Release 1.0.13"
-git tag v1.0.13
+git commit -am "Release 1.1.0"
+git tag v1.1.0
 git push origin main --tags
 ```
 
