@@ -164,6 +164,15 @@ final class UsageStore: ObservableObject {
         }
     }
 
+    /// Login ou logout: o erro anterior não vale mais, então busca já, sem
+    /// esperar o cooldown de falha.
+    func credentialsChanged() {
+        backoff = nil
+        nextAllowedFetch = nil
+        if AppLogin.isSignedIn == false { usage = nil }
+        refresh(force: true)
+    }
+
     /// Honors `Retry-After` when present, otherwise doubles the wait up to
     /// 15 minutes so a throttled account stops hammering the endpoint.
     private func applyBackoff(for error: Error) {

@@ -5,6 +5,16 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado
+
+- **Login próprio ("Entrar com Claude…").** O app faz o login OAuth (PKCE,
+  o mesmo fluxo do `claude auth login`) e não depende mais do Claude Code
+  instalado. O token fica em
+  `~/Library/Application Support/ClaudeStatusBar/token.json` (`0600`) e é
+  renovado sozinho. Isso também acaba com os pedidos recorrentes do keychain:
+  o CLI regrava o item dele a cada refresh e o "Sempre permitir" se perdia.
+  O token do Claude Code continua como alternativa para quem não entrou pelo app.
+
 ## [1.0.13] — 2026-10-21
 
 ### Alterado

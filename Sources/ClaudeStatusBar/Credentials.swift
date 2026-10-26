@@ -1,8 +1,9 @@
 import Foundation
 import Security
 
-/// Locates the Claude Code OAuth access token the same way the CLI does:
-/// `~/.claude/.credentials.json` first, then the login keychain item that the
+/// Locates an OAuth access token: the app's own login first (see `AppLogin`),
+/// then the Claude Code one the same way the CLI does —
+/// `~/.claude/.credentials.json`, then the login keychain item that the
 /// native builds use. The token never leaves this process except as the
 /// Authorization header sent to api.anthropic.com.
 enum Credentials {
@@ -19,8 +20,12 @@ enum Credentials {
     /// token em cache — só nesse caso vale reler a fonte, porque um token
     /// recém-lido que já veio recusado não muda numa segunda tentativa (e a
     /// releitura custaria outro prompt do keychain).
-    @discardableResult
-    static func invalidate() -> Bool {
+    static func invalidate() async -> Bool {
+        if await AppLogin.shared.expire() { return true }
+        return invalidateCLIToken()
+    }
+
+    private static func invalidateCLIToken() -> Bool {
         cacheLock.lock()
         defer { cacheLock.unlock() }
         let had = cachedToken != nil
@@ -32,11 +37,16 @@ enum Credentials {
         case notFound
 
         var errorDescription: String? {
-            L("No Claude Code token found. Sign in with `claude` and try again.")
+            L("Not signed in. Right-click the icon and choose “Sign in with Claude…”.")
         }
     }
 
-    static func accessToken() throws -> String {
+    static func accessToken() async throws -> String {
+        if let token = try await AppLogin.shared.validAccessToken() { return token }
+        return try cliAccessToken()
+    }
+
+    private static func cliAccessToken() throws -> String {
         cacheLock.lock()
         defer { cacheLock.unlock() }
         if let token = cachedToken { return token }

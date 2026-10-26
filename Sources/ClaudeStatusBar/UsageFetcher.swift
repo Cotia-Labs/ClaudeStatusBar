@@ -6,7 +6,7 @@ actor UsageFetcher {
     static let endpoint = URL(string: "https://api.anthropic.com/api/oauth/usage")!
     /// The endpoint buckets requests by User-Agent: anything that does not look
     /// like the CLI lands in a very tight bucket and starts returning 429.
-    private static let userAgent = "claude-cli/\(cliVersion) (external, cli)"
+    static let userAgent = "claude-cli/\(cliVersion) (external, cli)"
 
     /// Best effort read of the installed CLI version, so the header tracks it.
     private static let cliVersion: String = {
@@ -26,7 +26,7 @@ actor UsageFetcher {
 
         var errorDescription: String? {
             switch self {
-            case .unauthorized: return L("Token expired. Run `claude` to sign in again.")
+            case .unauthorized: return L("Token expired. Sign in again from the menu.")
             case .throttled(let retryAfter):
                 let wait = retryAfter.map { L(" Retrying in %d s.", Int($0.rounded())) } ?? ""
                 return L("Rate limited by the server (429).") + wait
@@ -51,16 +51,16 @@ actor UsageFetcher {
         do {
             return try await attempt()
         } catch FetchError.unauthorized {
-            // O token em cache pode ter sido rotacionado pelo CLI: relê a fonte
-            // uma vez antes de reportar o erro ao usuário.
-            guard Credentials.invalidate() else { throw FetchError.unauthorized }
+            // O token em cache pode ter sido rotacionado (pelo CLI ou expirado
+            // antes da hora): relê ou renova uma vez antes de reportar o erro ao usuário.
+            guard await Credentials.invalidate() else { throw FetchError.unauthorized }
             return try await attempt()
         }
     }
 
     private func attempt() async throws -> UsageSnapshot {
         var request = URLRequest(url: Self.endpoint)
-        request.setValue("Bearer \(try Credentials.accessToken())", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(try await Credentials.accessToken())", forHTTPHeaderField: "Authorization")
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
         request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

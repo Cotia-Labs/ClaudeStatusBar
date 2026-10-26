@@ -147,6 +147,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                             on: SMAppService.mainApp.status == .enabled))
 
         menu.addItem(.separator())
+        let accountItem = AppLogin.isSignedIn
+            ? NSMenuItem(title: L("Sign out of Claude"), action: #selector(signOut), keyEquivalent: "")
+            : NSMenuItem(title: L("Sign in with Claude…"), action: #selector(signIn), keyEquivalent: "")
+        accountItem.target = self
+        menu.addItem(accountItem)
+
         let updateItem = NSMenuItem(
             title: store.availableUpdate.map { L("Download version %@", $0.version) }
                 ?? L("Check for updates…"),
@@ -259,6 +265,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             let alert = NSAlert(error: error)
             alert.messageText = L("Could not change the open-at-login setting")
             alert.runModal()
+        }
+    }
+
+    /// Abre o login no navegador e pede o código que a página de retorno mostra.
+    @objc private func signIn() {
+        Task { @MainActor in
+            NSWorkspace.shared.open(await AppLogin.shared.beginLogin())
+
+            let alert = NSAlert()
+            alert.messageText = L("Sign in with Claude")
+            alert.informativeText = L("Finish signing in in the browser, then paste the code shown on the page.")
+            let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
+            field.placeholderString = L("Paste the code here")
+            alert.accessoryView = field
+            alert.addButton(withTitle: L("Sign in"))
+            alert.addButton(withTitle: L("Cancel"))
+            alert.window.initialFirstResponder = field
+            alert.window.level = .floating
+            NSApp.activate(ignoringOtherApps: true)
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+            do {
+                try await AppLogin.shared.finishLogin(code: field.stringValue)
+                store.credentialsChanged()
+            } catch {
+                let failure = NSAlert(error: error)
+                failure.messageText = L("Could not sign in")
+                failure.runModal()
+            }
+        }
+    }
+
+    @objc private func signOut() {
+        Task { @MainActor in
+            await AppLogin.shared.signOut()
+            store.credentialsChanged()
         }
     }
 

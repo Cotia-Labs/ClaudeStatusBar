@@ -11,7 +11,8 @@ Versão atual: **1.0.13** (ver [CHANGELOG.md](CHANGELOG.md)).
 ## Instalação
 
 **Requisitos:** macOS 13 (Ventura) ou posterior, Apple Silicon ou Intel, e
-login ativo do Claude Code (`claude auth`).
+uma conta do plano Claude. Entre pelo menu (clique direito no ícone →
+**Entrar com Claude…**); sem isso o app usa o login do Claude Code, se houver.
 
 ### Opção 1: baixar o app
 
