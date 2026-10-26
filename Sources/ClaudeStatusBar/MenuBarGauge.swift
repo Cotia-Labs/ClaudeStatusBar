@@ -59,8 +59,9 @@ final class MenuBarGauge {
     var width: CGFloat {
         switch effectiveStyle {
         case .ring: return Self.diameter + 4
-        case .ringPercent: return Self.diameter + 34
-        case .percent: return 32
+        // Sized for "100%", the widest text, so the icon does not clip at the cap.
+        case .ringPercent: return Self.diameter + 38
+        case .percent: return 36
         case .dot: return Self.dotDiameter + 8
         }
     }

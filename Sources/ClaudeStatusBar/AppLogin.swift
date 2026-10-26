@@ -7,7 +7,9 @@ import Foundation
 /// permitir", e a assinatura ad-hoc faz cada versão do app parecer outro app.
 /// A proteção é a mesma do `~/.claude/.credentials.json` do CLI.
 actor AppLogin {
-    static let shared = AppLogin()
+    static let shared = AppLogin(file: "token.json")
+    /// Segunda conta opcional, mostrada ao lado da principal no painel.
+    static let second = AppLogin(file: "token-2.json")
 
     private static let clientID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
     private static let authorizeURL = URL(string: "https://claude.com/cai/oauth/authorize")!
@@ -15,8 +17,12 @@ actor AppLogin {
     private static let redirectURI = "https://platform.claude.com/oauth/code/callback"
     private static let scope = "user:profile user:inference"
 
-    static let fileURL = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent("Library/Application Support/ClaudeStatusBar/token.json")
+    nonisolated let fileURL: URL
+
+    init(file: String) {
+        fileURL = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Application Support/ClaudeStatusBar/\(file)")
+    }
 
     enum LoginError: LocalizedError {
         case invalidCode
@@ -44,7 +50,7 @@ actor AppLogin {
     private var refreshing: Task<StoredToken, Error>?
 
     /// Leitura barata para o menu decidir entre "Entrar" e "Sair".
-    nonisolated static var isSignedIn: Bool {
+    nonisolated var isSignedIn: Bool {
         FileManager.default.fileExists(atPath: fileURL.path)
     }
 
@@ -91,7 +97,7 @@ actor AppLogin {
     func signOut() {
         token = nil
         loaded = true
-        try? FileManager.default.removeItem(at: Self.fileURL)
+        try? FileManager.default.removeItem(at: fileURL)
     }
 
     // MARK: - Token
@@ -100,7 +106,7 @@ actor AppLogin {
     func validAccessToken() async throws -> String? {
         if !loaded {
             loaded = true
-            token = (try? Data(contentsOf: Self.fileURL))
+            token = (try? Data(contentsOf: fileURL))
                 .flatMap { try? JSONDecoder().decode(StoredToken.self, from: $0) }
         }
         guard let current = token else { return nil }
@@ -166,11 +172,11 @@ actor AppLogin {
 
     private func save(_ fresh: StoredToken) throws {
         let manager = FileManager.default
-        let directory = Self.fileURL.deletingLastPathComponent()
+        let directory = fileURL.deletingLastPathComponent()
         try manager.createDirectory(at: directory, withIntermediateDirectories: true,
                                     attributes: [.posixPermissions: 0o700])
-        try JSONEncoder().encode(fresh).write(to: Self.fileURL, options: .atomic)
-        try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: Self.fileURL.path)
+        try JSONEncoder().encode(fresh).write(to: fileURL, options: .atomic)
+        try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
         token = fresh
         loaded = true
     }

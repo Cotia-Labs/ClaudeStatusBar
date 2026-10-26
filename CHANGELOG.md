@@ -5,6 +5,21 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.3.0] — 2026-10-26
+
+### Adicionado
+
+- **Segunda conta Claude.** "Adicionar segunda conta…" no menu faz o login de
+  outra conta e o painel passa a mostrar o uso das duas ("Conta 1" e
+  "Conta 2"). Por padrão continua uma conta só; o ícone e os avisos de 80%/95%
+  seguem a conta 1.
+
+### Corrigido
+
+- "100%" desalinhava: o número quebrava na orelha do notch, empurrava as barras
+  no card e era cortado no ícone da barra de menus. Os espaços agora cabem o
+  texto mais largo.
+
 ## [1.2.0] — 2026-10-25
 
 ### Adicionado

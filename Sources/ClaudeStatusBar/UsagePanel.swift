@@ -12,22 +12,10 @@ struct UsagePanel: View {
         VStack(alignment: .leading, spacing: 14) {
             header
 
-            if let usage = store.usage {
-                VStack(spacing: 12) {
-                    ForEach(Array(usage.rows.enumerated()), id: \.offset) { index, row in
-                        UsageRow(title: row.title,
-                                 subtitle: row.subtitle,
-                                 window: row.window,
-                                 delay: Double(index) * 0.07)
-                    }
-                }
-                .opacity(store.usageError == nil ? 1 : 0.55)
-            } else if store.usageError == nil {
-                ProgressView().controlSize(.small).frame(maxWidth: .infinity)
-            }
-
-            if let error = store.usageError {
-                errorBox(error)
+            let hasSecond = AppLogin.second.isSignedIn
+            account(hasSecond ? L("Account 1") : nil, usage: store.usage, error: store.usageError)
+            if hasSecond {
+                account(L("Account 2"), usage: store.secondUsage, error: store.secondError)
             }
 
             if let update = store.availableUpdate {
@@ -62,12 +50,37 @@ struct UsagePanel: View {
         }
     }
 
-    private func errorBox(_ message: String) -> some View {
+    /// O título só aparece com duas contas; com uma o painel fica como sempre.
+    @ViewBuilder
+    private func account(_ title: String?, usage: UsageSnapshot?, error: String?) -> some View {
+        if let title {
+            Text(title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+        }
+        if let usage {
+            VStack(spacing: 12) {
+                ForEach(Array(usage.rows.enumerated()), id: \.offset) { index, row in
+                    UsageRow(title: row.title,
+                             subtitle: row.subtitle,
+                             window: row.window,
+                             delay: Double(index) * 0.07)
+                }
+            }
+            .opacity(error == nil ? 1 : 0.55)
+        } else if error == nil {
+            ProgressView().controlSize(.small).frame(maxWidth: .infinity)
+        }
+
+        if let error {
+            errorBox(error, stale: usage != nil)
+        }
+    }
+
+    private func errorBox(_ message: String, stale: Bool) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
             VStack(alignment: .leading, spacing: 2) {
                 Text(message).font(.system(size: 11)).fixedSize(horizontal: false, vertical: true)
-                if let lastGood = store.lastGoodUpdate, store.usage != nil {
+                if let lastGood = store.lastGoodUpdate, stale {
                     Text(L("Showing data from %@.", Formatters.absolute(from: lastGood)))
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)

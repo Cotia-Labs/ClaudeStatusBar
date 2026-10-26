@@ -159,11 +159,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                             on: SMAppService.mainApp.status == .enabled))
 
         menu.addItem(.separator())
-        let accountItem = AppLogin.isSignedIn
-            ? NSMenuItem(title: L("Sign out of Claude"), action: #selector(signOut), keyEquivalent: "")
-            : NSMenuItem(title: L("Sign in with Claude…"), action: #selector(signIn), keyEquivalent: "")
+        let accountItem = AppLogin.shared.isSignedIn
+            ? NSMenuItem(title: L("Sign out of Claude"), action: #selector(signOut(_:)), keyEquivalent: "")
+            : NSMenuItem(title: L("Sign in with Claude…"), action: #selector(signIn(_:)), keyEquivalent: "")
         accountItem.target = self
+        accountItem.representedObject = AppLogin.shared
         menu.addItem(accountItem)
+
+        let secondItem = AppLogin.second.isSignedIn
+            ? NSMenuItem(title: L("Remove second account"), action: #selector(signOut(_:)), keyEquivalent: "")
+            : NSMenuItem(title: L("Add second account…"), action: #selector(signIn(_:)), keyEquivalent: "")
+        secondItem.target = self
+        secondItem.representedObject = AppLogin.second
+        menu.addItem(secondItem)
 
         let updateItem = NSMenuItem(
             title: store.availableUpdate.map { L("Download version %@", $0.version) }
@@ -286,13 +294,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 
     /// Abre o login no navegador e pede o código que a página de retorno mostra.
-    @objc private func signIn() {
+    /// Na segunda conta, entre com outro usuário no navegador (ou numa janela anônima).
+    @objc private func signIn(_ sender: NSMenuItem) {
+        guard let login = sender.representedObject as? AppLogin else { return }
         Task { @MainActor in
-            NSWorkspace.shared.open(await AppLogin.shared.beginLogin())
+            NSWorkspace.shared.open(await login.beginLogin())
 
             let alert = NSAlert()
             alert.messageText = L("Sign in with Claude")
             alert.informativeText = L("Finish signing in in the browser, then paste the code shown on the page.")
+            if login === AppLogin.second {
+                alert.informativeText += "\n\n" + L("Use the other account: if the browser is already signed in to the first one, sign out there or paste the link in a private window.")
+            }
             let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
             field.placeholderString = L("Paste the code here")
             alert.accessoryView = field
@@ -304,7 +317,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             guard alert.runModal() == .alertFirstButtonReturn else { return }
 
             do {
-                try await AppLogin.shared.finishLogin(code: field.stringValue)
+                try await login.finishLogin(code: field.stringValue)
                 store.credentialsChanged()
             } catch {
                 let failure = NSAlert(error: error)
@@ -314,9 +327,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
     }
 
-    @objc private func signOut() {
+    @objc private func signOut(_ sender: NSMenuItem) {
+        guard let login = sender.representedObject as? AppLogin else { return }
         Task { @MainActor in
-            await AppLogin.shared.signOut()
+            await login.signOut()
             store.credentialsChanged()
         }
     }

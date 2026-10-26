@@ -10,7 +10,8 @@ final class NotchOverlay {
     /// Só existe a orelha direita: os menus do app da frente crescem da
     /// esquerda até o notch, e qualquer coisa ali cobre algum deles. À direita
     /// os ícones de status começam da borda da tela, e o lado do notch fica livre.
-    static let earWidth: CGFloat = 76
+    /// Cabe "100%", o texto mais largo: com menos, o número quebrava no limite.
+    static let earWidth: CGFloat = 84
     static let expandedSize = NSSize(width: 340, height: 100)
     /// Tempo com o cursor parado no notch antes de abrir: passar a caminho do
     /// menu não deve disparar o card.
@@ -303,6 +304,8 @@ private struct NotchView: View {
                 Text(percent(session))
                     .font(.system(size: 13, weight: .semibold, design: .rounded).monospacedDigit())
                     .foregroundColor(tint)
+                    .lineLimit(1)
+                    .fixedSize()
                     .opacity(state.expanded ? 0 : 1)
             }
             .padding(.leading, 8)
@@ -340,7 +343,8 @@ private struct NotchView: View {
                     Text(percent(session))
                         .font(.system(size: 30, weight: .semibold, design: .rounded).monospacedDigit())
                         .foregroundColor(tint)
-                        .frame(minWidth: 78, alignment: .leading)
+                        .lineLimit(1)
+                        .frame(minWidth: 88, alignment: .leading)
                     ticks
                 }
 

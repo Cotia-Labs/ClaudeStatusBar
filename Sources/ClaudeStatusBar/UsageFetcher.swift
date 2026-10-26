@@ -35,6 +35,24 @@ actor UsageFetcher {
         }
     }
 
+    private let accessToken: @Sendable () async throws -> String
+    private let invalidate: @Sendable () async -> Bool
+
+    /// Padrão: a conta principal (login do app ou do Claude Code).
+    init(accessToken: @escaping @Sendable () async throws -> String = { try await Credentials.accessToken() },
+         invalidate: @escaping @Sendable () async -> Bool = { await Credentials.invalidate() }) {
+        self.accessToken = accessToken
+        self.invalidate = invalidate
+    }
+
+    /// A segunda conta só existe pelo login do app.
+    static func login(_ login: AppLogin) -> UsageFetcher {
+        UsageFetcher(accessToken: {
+            guard let token = try await login.validAccessToken() else { throw Credentials.LookupError.notFound }
+            return token
+        }, invalidate: { await login.expire() })
+    }
+
     private let session: URLSession = {
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 15
@@ -53,14 +71,14 @@ actor UsageFetcher {
         } catch FetchError.unauthorized {
             // O token em cache pode ter sido rotacionado (pelo CLI ou expirado
             // antes da hora): relê ou renova uma vez antes de reportar o erro ao usuário.
-            guard await Credentials.invalidate() else { throw FetchError.unauthorized }
+            guard await invalidate() else { throw FetchError.unauthorized }
             return try await attempt()
         }
     }
 
     private func attempt() async throws -> UsageSnapshot {
         var request = URLRequest(url: Self.endpoint)
-        request.setValue("Bearer \(try await Credentials.accessToken())", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(try await accessToken())", forHTTPHeaderField: "Authorization")
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
         request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

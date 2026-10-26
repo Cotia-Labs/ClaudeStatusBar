@@ -84,3 +84,8 @@
 "Weekly" = "Weekly";
 "You are already on version %@." = "You are already on version %@.";
 "You have %@. Click to download it." = "You have %@. Click to download it.";
+"Account 1" = "Account 1";
+"Account 2" = "Account 2";
+"Add second account…" = "Add second account…";
+"Remove second account" = "Remove second account";
+"Use the other account: if the browser is already signed in to the first one, sign out there or paste the link in a private window." = "Use the other account: if the browser is already signed in to the first one, sign out there or paste the link in a private window.";

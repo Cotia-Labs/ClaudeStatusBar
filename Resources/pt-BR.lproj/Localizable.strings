@@ -84,3 +84,8 @@
 "Weekly" = "Semanal";
 "You are already on version %@." = "Você já está na versão %@.";
 "You have %@. Click to download it." = "Você tem a %@. Clique para baixar.";
+"Account 1" = "Conta 1";
+"Account 2" = "Conta 2";
+"Add second account…" = "Adicionar segunda conta…";
+"Remove second account" = "Remover segunda conta";
+"Use the other account: if the browser is already signed in to the first one, sign out there or paste the link in a private window." = "Use a outra conta: se o navegador já estiver logado na primeira, saia dela lá ou cole o link numa janela anônima.";

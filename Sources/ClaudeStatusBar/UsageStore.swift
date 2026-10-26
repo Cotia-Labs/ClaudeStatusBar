@@ -7,6 +7,9 @@ import Combine
 final class UsageStore: ObservableObject {
     @Published private(set) var usage: UsageSnapshot?
     @Published private(set) var usageError: String?
+    /// Segunda conta (opcional): só aparece no painel, o ícone segue a principal.
+    @Published private(set) var secondUsage: UsageSnapshot?
+    @Published private(set) var secondError: String?
     @Published private(set) var status: StatusSummary?
     @Published private(set) var lastUpdate: Date?
     /// When the numbers on screen were actually fetched, as opposed to the
@@ -32,6 +35,7 @@ final class UsageStore: ObservableObject {
     private var backoff: TimeInterval?
 
     private let usageFetcher = UsageFetcher()
+    private let secondFetcher = UsageFetcher.login(AppLogin.second)
     private let statusFetcher = StatusFetcher()
     private let notifier = Notifier()
     private let updateChecker = UpdateChecker()
@@ -143,7 +147,12 @@ final class UsageStore: ObservableObject {
             // Bound to locals first: Swift 5.10 rejects `async let` reading
             // captured properties directly from concurrent code.
             let fetcher = self.statusFetcher
-            async let usageResult = self.fetchUsage()
+            let main = self.usageFetcher
+            let second = AppLogin.second.isSignedIn ? self.secondFetcher : nil
+            async let usageResult = Self.fetchUsage(main)
+            // ponytail: a segunda conta segue o cooldown/backoff da principal;
+            // backoff próprio se ela começar a tomar 429 sozinha.
+            async let secondResult: Result<UsageSnapshot, Error>? = second == nil ? nil : await Self.fetchUsage(second!)
             async let statusResult = try? fetcher.fetch()
 
             switch await usageResult {
@@ -158,6 +167,11 @@ final class UsageStore: ObservableObject {
                 usageError = error.localizedDescription
                 applyBackoff(for: error)
             }
+            switch await secondResult {
+            case .success(let snapshot): secondUsage = snapshot; secondError = nil
+            case .failure(let error): secondError = error.localizedDescription
+            case nil: secondUsage = nil; secondError = nil
+            }
             status = await statusResult
             lastUpdate = Date()
             isRefreshing = false
@@ -169,7 +183,7 @@ final class UsageStore: ObservableObject {
     func credentialsChanged() {
         backoff = nil
         nextAllowedFetch = nil
-        if AppLogin.isSignedIn == false { usage = nil }
+        if AppLogin.shared.isSignedIn == false { usage = nil }
         refresh(force: true)
     }
 
@@ -184,8 +198,8 @@ final class UsageStore: ObservableObject {
         nextAllowedFetch = Date().addingTimeInterval(wait)
     }
 
-    private func fetchUsage() async -> Result<UsageSnapshot, Error> {
-        do { return .success(try await usageFetcher.fetch()) } catch { return .failure(error) }
+    private static func fetchUsage(_ fetcher: UsageFetcher) async -> Result<UsageSnapshot, Error> {
+        do { return .success(try await fetcher.fetch()) } catch { return .failure(error) }
     }
 
     /// Notifies once per threshold crossing, rearming when the window resets.
