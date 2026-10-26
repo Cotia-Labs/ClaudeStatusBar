@@ -4,7 +4,7 @@
 
 # ClaudeStatusBar
 
-![O anel na barra de menus e o painel de limites de uso](docs/banner.png)
+![O mascote e a porcentagem ao lado do notch, com o painel de limites de uso aberto](docs/banner.png)
 
 Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
@@ -136,6 +136,10 @@ barras, o tempo até o reset e a semana. Clique abre o painel; clique direito, o
 menu. Só a orelha direita é usada porque os menus dos apps crescem da esquerda
 até o notch. Sem tela com notch (monitor externo, tampa fechada), o ícone volta
 para a barra de menus.
+
+<p align="center">
+  <img src="docs/notch.png" width="460" alt="A faixa no notch fechada, só com o mascote e 24%, e aberta, com a sessão em barras, o reset e a semana">
+</p>
 
 Com **Reduzir Movimento** ligado em Acessibilidade, o anel salta direto para o
 valor, não pulsa em 95%, e as barras do painel não usam spring.
