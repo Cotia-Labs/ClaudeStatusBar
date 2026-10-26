@@ -6,7 +6,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.1.0** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.2.0** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalação
 
@@ -92,8 +92,8 @@ O GitHub Actions faz o build e sobe o artefato:
 ```bash
 # 1. atualize VERSION e CHANGELOG.md — o tag precisa apontar para o commit
 #    que já contém o VERSION novo, senão o workflow falha
-git commit -am "Release 1.1.0"
-git tag v1.1.0
+git commit -am "Release 1.2.0"
+git tag v1.2.0
 git push origin main --tags
 ```
 
@@ -118,12 +118,20 @@ temporária quando estes secrets existem (sem eles, segue ad-hoc):
 ## O que aparece
 
 Na barra: um **anel que enche** com o percentual da **sessão atual** (janela de 5 horas).
-Verde → amarelo → laranja → vermelho, com pulsação lenta acima de 95%.
+No laranja do Claude Code, com pulsação lenta acima de 95%.
 O anel faz easing até o novo valor a cada atualização, nunca salta.
 O estilo é escolhido no menu: **anel**, **anel + porcentagem**, **só a
 porcentagem** ou **ponto**. O **modo discreto** encolhe tudo para um pontinho
 esmaecido enquanto a sessão está abaixo de 25/50/75% — sem nunca esconder o
 ícone, que continua clicável.
+
+**No notch do MacBook** (menu → **Mostrar no notch**): o mascote do Claude
+Code e a porcentagem ficam logo à direita do notch, no lugar do ícone da barra.
+Com o mouse em cima, desce um card no estilo Live Activity com a sessão em
+barras, o tempo até o reset e a semana. Clique abre o painel; clique direito, o
+menu. Só a orelha direita é usada porque os menus dos apps crescem da esquerda
+até o notch. Sem tela com notch (monitor externo, tampa fechada), o ícone volta
+para a barra de menus.
 
 Com **Reduzir Movimento** ligado em Acessibilidade, o anel salta direto para o
 valor, não pulsa em 95%, e as barras do painel não usam spring.

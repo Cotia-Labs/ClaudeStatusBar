@@ -31,6 +31,7 @@ enum Preferences {
     private static let discreetKey = "discreetBelowPercent"
     private static let checkUpdatesKey = "checkForUpdates"
     private static let notifiedVersionKey = "lastNotifiedVersion"
+    private static let notchKey = "showInNotch"
 
     /// The usage endpoint throttles aggressively, so a minute is the floor.
     static let refreshChoices: [TimeInterval] = [60, 300, 900, 1800]
@@ -82,6 +83,13 @@ enum Preferences {
     static var lastNotifiedVersion: String? {
         get { UserDefaults.standard.string(forKey: notifiedVersionKey) }
         set { UserDefaults.standard.set(newValue, forKey: notifiedVersionKey) }
+    }
+
+    /// Desligado por padrão: a faixa no notch é visível demais para aparecer
+    /// sem o usuário pedir numa atualização.
+    static var showInNotch: Bool {
+        get { UserDefaults.standard.bool(forKey: notchKey) }
+        set { UserDefaults.standard.set(newValue, forKey: notchKey) }
     }
 
     /// Follows the system setting; when on, the gauge snaps instead of easing,

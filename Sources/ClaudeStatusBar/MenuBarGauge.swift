@@ -109,13 +109,7 @@ final class MenuBarGauge {
     }
 
     private var tint: NSColor {
-        if isStale { return .disabledControlTextColor }
-        switch level {
-        case .comfortable: return .systemGreen
-        case .watch: return .systemYellow
-        case .tight: return .systemOrange
-        case .critical: return .systemRed
-        }
+        isStale ? .disabledControlTextColor : .claudeOrange
     }
 
     private func render() {

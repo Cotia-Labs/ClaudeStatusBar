@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var gauge: MenuBarGauge!
     private var popover: NSPopover!
     private let store = UsageStore()
+    private var notch: NotchOverlay!
     private var cancellables: Set<AnyCancellable> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -43,6 +44,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         popover.delegate = self
         popover.contentViewController = controller
         popover.contentSize = controller.view.fittingSize
+
+        notch = NotchOverlay(store: store,
+                             onClick: { [weak self] view in self?.togglePopover(anchoredTo: view) },
+                             onMenu: { [weak self] view in self?.showMenu(anchoredTo: view) })
+        notch.onVisibilityChange = { [weak self] showing in self?.statusItem.isVisible = !showing }
+        notch.canExpand = { [weak self] in self?.popover.isShown != true }
+        notch.apply()
 
         observeStore()
         store.start()
@@ -80,12 +88,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if isSecondary {
             showMenu(anchoredTo: sender)
         } else {
-            togglePopover()
+            togglePopover(anchoredTo: sender)
         }
     }
 
-    private func togglePopover() {
-        guard let button = statusItem.button else { return }
+    private func togglePopover(anchoredTo anchor: NSView) {
         if popover.isShown {
             popover.performClose(nil)
         } else {
@@ -96,7 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                 controller.view.layoutSubtreeIfNeeded()
                 popover.contentSize = controller.view.fittingSize
             }
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            popover.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
             NSApp.activate(ignoringOtherApps: true)
         }
@@ -136,6 +143,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                              title: describe(discreet:),
                              action: #selector(setDiscreet(_:))))
 
+        if NotchOverlay.isAvailable {
+            menu.addItem(toggle(L("Show in the notch"),
+                                #selector(toggleNotch),
+                                on: Preferences.showInNotch))
+        }
         menu.addItem(toggle(L("Warn at 80% and 95%"),
                             #selector(toggleNotify),
                             on: Preferences.notifyOnChange))
@@ -248,6 +260,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     /// Se já sabemos de uma versão nova, o item vira o atalho de download.
     @objc private func checkForUpdates() {
         store.actOnUpdate()
+    }
+
+    @objc private func toggleNotch() {
+        Preferences.showInNotch.toggle()
+        notch.apply()
     }
 
     @objc private func toggleNotify() {

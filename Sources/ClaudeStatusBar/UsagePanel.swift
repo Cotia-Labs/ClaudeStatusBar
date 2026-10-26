@@ -144,8 +144,6 @@ private struct UsageRow: View {
 
     @State private var shown: Double = 0
 
-    private var level: UsageLevel { UsageLevel(fraction: window.fraction) }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(alignment: .firstTextBaseline) {
@@ -153,7 +151,7 @@ private struct UsageRow: View {
                 Spacer()
                 Text(L("%d%% used", Int(window.utilization.rounded())))
                     .font(.system(size: 11, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(level.swiftUIColor)
+                    .foregroundStyle(Color.claudeOrange)
                     .contentTransition(.numericText())
             }
 
@@ -161,7 +159,8 @@ private struct UsageRow: View {
                 ZStack(alignment: .leading) {
                     Capsule().fill(Color.primary.opacity(0.08))
                     Capsule()
-                        .fill(level.gradient)
+                        .fill(LinearGradient(colors: [Color.claudeOrange.opacity(0.75), .claudeOrange],
+                                             startPoint: .leading, endPoint: .trailing))
                         .frame(width: max(3, geometry.size.width * shown))
                 }
             }
@@ -232,20 +231,13 @@ private struct MenuButton: NSViewRepresentable {
     }
 }
 
-extension UsageLevel {
-    var swiftUIColor: Color {
-        switch self {
-        case .comfortable: return .green
-        case .watch: return .yellow
-        case .tight: return .orange
-        case .critical: return .red
-        }
-    }
+extension Color {
+    /// O laranja do Claude Code (#D77757): a cor única do uso, no painel e no notch.
+    static let claudeOrange = Color(nsColor: .claudeOrange)
+}
 
-    var gradient: LinearGradient {
-        LinearGradient(colors: [swiftUIColor.opacity(0.75), swiftUIColor],
-                       startPoint: .leading, endPoint: .trailing)
-    }
+extension NSColor {
+    static let claudeOrange = NSColor(srgbRed: 215 / 255, green: 119 / 255, blue: 87 / 255, alpha: 1)
 }
 
 extension Severity {

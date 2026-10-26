@@ -5,6 +5,23 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.2.0] — 2026-10-25
+
+### Adicionado
+
+- **Uso no notch do MacBook.** Opção "Mostrar no notch" no menu: o mascote do
+  Claude Code e a porcentagem da sessão ficam à direita do notch, no lugar do
+  ícone da barra de menus. Com o mouse parado em cima, desce um card no estilo
+  Live Activity com a sessão em barras, a contagem até o reset e a semana.
+  Clique abre o painel e clique direito abre o menu. Sem tela com notch, o
+  ícone da barra volta sozinho.
+
+### Alterado
+
+- **Laranja do Claude Code (#D77757) como cor única do uso**, no painel, no
+  ícone e no notch, no lugar do verde/amarelo/laranja/vermelho por nível. Os
+  avisos de 80% e 95% continuam por notificação.
+
 ## [1.1.0] — 2026-10-25
 
 ### Adicionado
