@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/mascot.gif" width="330" alt="O mascote do Claude Code, em pixel art laranja, digitando código num terminal em loop">
+</p>
+
 # ClaudeStatusBar
 
 ![O anel na barra de menus e o painel de limites de uso](docs/banner.png)
