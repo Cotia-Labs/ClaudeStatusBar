@@ -5,6 +5,13 @@ versionamento conforme [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [1.3.1] — 2026-10-30
+
+### Alterado
+
+- Com duas contas, o painel mostra o e-mail de cada uma no lugar de "Conta 1" e
+  "Conta 2", que ficam só enquanto o e-mail não chega.
+
 ## [1.3.0] — 2026-10-26
 
 ### Adicionado

@@ -7,6 +7,7 @@ actor UsageFetcher {
     /// The endpoint buckets requests by User-Agent: anything that does not look
     /// like the CLI lands in a very tight bucket and starts returning 429.
     static let userAgent = "claude-cli/\(cliVersion) (external, cli)"
+    static let profileEndpoint = URL(string: "https://api.anthropic.com/api/oauth/profile")!
 
     /// Best effort read of the installed CLI version, so the header tracks it.
     private static let cliVersion: String = {
@@ -74,6 +75,23 @@ actor UsageFetcher {
             guard await invalidate() else { throw FetchError.unauthorized }
             return try await attempt()
         }
+    }
+
+    /// E-mail da conta, para o título do painel. Melhor esforço: sem ele o
+    /// painel fica com "Conta 1"/"Conta 2".
+    func email() async -> String? {
+        struct Profile: Decodable {
+            struct Account: Decodable { let email: String }
+            let account: Account
+        }
+        guard let token = try? await accessToken() else { return nil }
+        var request = URLRequest(url: Self.profileEndpoint)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        guard let (data, response) = try? await session.data(for: request),
+              (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        return (try? decoder.decode(Profile.self, from: data))?.account.email
     }
 
     private func attempt() async throws -> UsageSnapshot {

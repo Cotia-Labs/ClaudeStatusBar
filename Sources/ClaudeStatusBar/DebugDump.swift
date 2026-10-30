@@ -7,7 +7,9 @@ enum DebugDump {
         Task {
             defer { semaphore.signal() }
             do {
-                let snapshot = try await UsageFetcher().fetch()
+                let fetcher = UsageFetcher()
+                let snapshot = try await fetcher.fetch()
+                if let email = await fetcher.email() { print(email) }
                 for row in snapshot.rows {
                     let reset = row.window.resetsAt.map { Formatters.absolute(from: $0) } ?? "—"
                     let label = row.title.padding(toLength: 18, withPad: " ", startingAt: 0)

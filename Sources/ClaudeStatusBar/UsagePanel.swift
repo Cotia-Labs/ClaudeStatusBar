@@ -13,9 +13,9 @@ struct UsagePanel: View {
             header
 
             let hasSecond = AppLogin.second.isSignedIn
-            account(hasSecond ? L("Account 1") : nil, usage: store.usage, error: store.usageError)
+            account(hasSecond ? store.email ?? L("Account 1") : nil, usage: store.usage, error: store.usageError)
             if hasSecond {
-                account(L("Account 2"), usage: store.secondUsage, error: store.secondError)
+                account(store.secondEmail ?? L("Account 2"), usage: store.secondUsage, error: store.secondError)
             }
 
             if let update = store.availableUpdate {
@@ -55,6 +55,7 @@ struct UsagePanel: View {
     private func account(_ title: String?, usage: UsageSnapshot?, error: String?) -> some View {
         if let title {
             Text(title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                .lineLimit(1).truncationMode(.middle)
         }
         if let usage {
             VStack(spacing: 12) {

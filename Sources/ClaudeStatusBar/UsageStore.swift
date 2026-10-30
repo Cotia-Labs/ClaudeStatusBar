@@ -10,6 +10,9 @@ final class UsageStore: ObservableObject {
     /// Segunda conta (opcional): só aparece no painel, o ícone segue a principal.
     @Published private(set) var secondUsage: UsageSnapshot?
     @Published private(set) var secondError: String?
+    /// Títulos do painel com duas contas; `nil` até a primeira resposta.
+    @Published private(set) var email: String?
+    @Published private(set) var secondEmail: String?
     @Published private(set) var status: StatusSummary?
     @Published private(set) var lastUpdate: Date?
     /// When the numbers on screen were actually fetched, as opposed to the
@@ -172,6 +175,12 @@ final class UsageStore: ObservableObject {
             case .failure(let error): secondError = error.localizedDescription
             case nil: secondUsage = nil; secondError = nil
             }
+            // ponytail: só relê depois de login/logout; trocar de conta no
+            // Claude Code mantém o e-mail antigo até reabrir o app.
+            if let second {
+                if email == nil { email = await main.email() }
+                if secondEmail == nil { secondEmail = await second.email() }
+            }
             status = await statusResult
             lastUpdate = Date()
             isRefreshing = false
@@ -184,6 +193,8 @@ final class UsageStore: ObservableObject {
         backoff = nil
         nextAllowedFetch = nil
         if AppLogin.shared.isSignedIn == false { usage = nil }
+        email = nil
+        secondEmail = nil
         refresh(force: true)
     }
 

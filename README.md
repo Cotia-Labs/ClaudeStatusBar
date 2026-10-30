@@ -10,7 +10,7 @@ Widget de barra de menus para macOS que mostra, de forma animada, os
 **limites de uso do plano Claude** — a mesma informação do `/usage` do
 Claude Code — mais o status da plataforma.
 
-Versão atual: **1.3.0** (ver [CHANGELOG.md](CHANGELOG.md)).
+Versão atual: **1.3.1** (ver [CHANGELOG.md](CHANGELOG.md)).
 
 ## Instalação
 
